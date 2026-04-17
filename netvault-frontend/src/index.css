@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+}
+
+@layer components {
+  /* Glass card */
+  .glass {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* Page transition wrapper */
+  .page-enter { animation: fadeUp 0.35s ease both; }
+
+  /* Shimmer skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Status badges */
+  .badge-active   { @apply bg-success/10 text-success border border-success/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-expiring { @apply bg-warning/10 text-warning border border-warning/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-expired  { @apply bg-danger/10 text-danger border border-danger/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-transfer { @apply bg-info/10 text-info border border-info/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-paid     { @apply bg-success/10 text-success border border-success/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-pending  { @apply bg-warning/10 text-warning border border-warning/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+  .badge-overdue  { @apply bg-danger/10 text-danger border border-danger/20 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full; }
+}
