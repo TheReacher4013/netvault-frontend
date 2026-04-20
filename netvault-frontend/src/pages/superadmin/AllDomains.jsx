@@ -1,25 +1,34 @@
-// src/pages/superadmin/AllDomains.jsx
-// Cross-tenant domain view — SuperAdmin sees ALL domains across ALL companies
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Globe, Search, Filter, Building2 } from 'lucide-react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { Globe, Search, Building2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { superAdminService } from '../../services/api'
 import { Card, Loader, PageHeader, StatusBadge, EmptyState } from '../../components/ui/index'
 import { format } from 'date-fns'
 
+function useDebounce(value, delay = 400) {
+    const [debounced, setDebounced] = useState(value)
+    useEffect(() => {
+        const t = setTimeout(() => setDebounced(value), delay)
+        return () => clearTimeout(t)
+    }, [value, delay])
+    return debounced
+}
+
 export default function AllDomains() {
     const { theme } = useAuth()
     const navigate = useNavigate()
-    const [search, setSearch] = useState('')
+    const [searchInput, setSearchInput] = useState('')
+    const searchQuery = useDebounce(searchInput, 400)
     const [status, setStatus] = useState('')
     const [page, setPage] = useState(1)
+    useEffect(() => { setPage(1) }, [searchQuery, status])
 
-    const { data, isLoading } = useQuery({
-        queryKey: ['sa-all-domains', { search, status, page }],
-        queryFn: () => superAdminService.getAllDomains({ search, status, page, limit: 25 }),
-        keepPreviousData: true,
+    const { data, isLoading, isFetching } = useQuery({
+        queryKey: ['sa-all-domains', { search: searchQuery, status, page }],
+        queryFn: () => superAdminService.getAllDomains({ search: searchQuery, status, page, limit: 25 }),
+        placeholderData: keepPreviousData,  
     })
 
     const docs = data?.data?.data?.docs || []
@@ -28,8 +37,7 @@ export default function AllDomains() {
 
     const daysLeft = (expiry) =>
         Math.ceil((new Date(expiry) - new Date()) / 86400000)
-
-    if (isLoading) return <Loader text="Loading all domains..." />
+    if (isLoading && !data) return <Loader text="Loading all domains..." />
 
     return (
         <div className="space-y-5">
@@ -38,22 +46,26 @@ export default function AllDomains() {
                 subtitle={`${totalDocs} domains across all companies`}
             />
 
-            {/* Filters */}
             <Card className="p-4 flex flex-wrap gap-3">
                 <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
                     style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
                     <Search size={13} style={{ color: theme.muted }} />
                     <input
-                        value={search}
-                        onChange={e => { setSearch(e.target.value); setPage(1) }}
+                        value={searchInput}
+                        onChange={e => setSearchInput(e.target.value)}
                         placeholder="Search domain name..."
                         className="bg-transparent outline-none text-xs flex-1"
                         style={{ color: theme.text, fontFamily: "'DM Sans',sans-serif" }}
                     />
+
+                    {isFetching && (
+                        <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin flex-shrink-0"
+                            style={{ borderColor: theme.accent, borderTopColor: 'transparent' }} />
+                    )}
                 </div>
                 <select
                     value={status}
-                    onChange={e => { setStatus(e.target.value); setPage(1) }}
+                    onChange={e => setStatus(e.target.value)}
                     className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer"
                     style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }}
                 >
@@ -65,10 +77,10 @@ export default function AllDomains() {
                 </select>
             </Card>
 
-            {/* Table */}
             <Card>
                 {docs.length === 0 ? (
-                    <EmptyState icon={Globe} title="No domains found" />
+                    <EmptyState icon={Globe} title="No domains found"
+                        description={searchQuery || status ? 'Try a different search or filter.' : 'No domains registered across any tenant yet.'} />
                 ) : (
                     <>
                         <div className="overflow-x-auto">
@@ -86,7 +98,7 @@ export default function AllDomains() {
                                         const dl = daysLeft(d.expiryDate)
                                         return (
                                             <tr key={d._id}
-                                                className="hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                                className="hover:bg-white/[0.02] cursor-pointer"
                                                 style={{ borderBottom: `1px solid ${theme.border}` }}
                                                 onClick={() => navigate(`/super-admin/tenants/${d.tenantId?._id || d.tenantId}`)}>
                                                 <td className="px-4 py-3">
@@ -133,19 +145,15 @@ export default function AllDomains() {
                                     <button
                                         disabled={page <= 1}
                                         onClick={() => setPage(p => p - 1)}
-                                        className="text-xs px-3 py-1.5 rounded-lg disabled:opacity-30 transition-all"
+                                        className="text-xs px-3 py-1.5 rounded-lg disabled:opacity-30"
                                         style={{ background: `${theme.accent}12`, color: theme.accent, border: `1px solid ${theme.border}` }}
-                                    >
-                                        ← Prev
-                                    </button>
+                                    >← Prev</button>
                                     <button
                                         disabled={page >= totalPages}
                                         onClick={() => setPage(p => p + 1)}
-                                        className="text-xs px-3 py-1.5 rounded-lg disabled:opacity-30 transition-all"
+                                        className="text-xs px-3 py-1.5 rounded-lg disabled:opacity-30"
                                         style={{ background: `${theme.accent}12`, color: theme.accent, border: `1px solid ${theme.border}` }}
-                                    >
-                                        Next →
-                                    </button>
+                                    >Next →</button>
                                 </div>
                             </div>
                         )}

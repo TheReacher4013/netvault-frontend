@@ -1,4 +1,3 @@
-// src/pages/settings/CompanySettings.jsx
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Building2, Globe, Phone, MapPin, Mail, Shield, AlertTriangle } from 'lucide-react'
@@ -7,7 +6,6 @@ import api from '../../services/api'
 import { Button, Card, CardHeader, Input, Loader, PageHeader } from '../../components/ui/index'
 import toast from 'react-hot-toast'
 
-// Fetch own tenant info
 const fetchMyTenant = () => api.get('/tenant/me')
 const updateMyTenant = (data) => api.put('/tenant/me', data)
 
@@ -40,7 +38,7 @@ export default function CompanySettings() {
                 settings: tenant.settings || form.settings,
             })
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [tenant?._id])
 
     const saveMut = useMutation({
@@ -57,7 +55,6 @@ export default function CompanySettings() {
 
     if (isLoading) return <Loader text="Loading company settings..." />
 
-    // Usage percentages for plan limits
     const usagePct = (used, max) => max >= 99999 ? 0 : Math.min(100, Math.round((used / max) * 100))
 
     return (

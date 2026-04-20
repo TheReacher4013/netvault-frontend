@@ -1,6 +1,3 @@
-// src/pages/AdminDashboard.jsx
-// This is the original tenant-scoped dashboard for Admin / Staff / Client roles.
-// It is rendered by Dashboard.jsx only when user.role !== 'superAdmin'.
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Globe, Server, Users, FileText, AlertTriangle, TrendingUp, Activity, Clock } from 'lucide-react'

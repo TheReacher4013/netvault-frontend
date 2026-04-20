@@ -1,4 +1,3 @@
-// CreateInvoice.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'

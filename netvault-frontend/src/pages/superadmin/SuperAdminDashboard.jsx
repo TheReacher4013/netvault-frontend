@@ -1,4 +1,3 @@
-// src/pages/superadmin/SuperAdminDashboard.jsx
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -17,7 +16,7 @@ export default function SuperAdminDashboard() {
     const navigate = useNavigate()
     const qc = useQueryClient()
 
-    // ── Data fetching ────────────────────────────────────────────────────────
+    // ── Data fetching ───────
     const { data: statsData, isLoading } = useQuery({
         queryKey: ['sa-platform-stats'],
         queryFn: () => superAdminService.getStats(),

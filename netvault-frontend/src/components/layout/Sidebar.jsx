@@ -1,49 +1,55 @@
-// src/components/layout/Sidebar.jsx
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Globe, Server, Users, FileText,
   BarChart2, Bell, Activity, Settings, LogOut,
-  Shield, Building2, X, TrendingUp, Key
+  Shield, Building2, X, TrendingUp, Key,
+  Search, KeyRound, History,Clock 
 } from 'lucide-react'
 import clsx from 'clsx'
 
-// ── Navigation config ─────────────────────────────────────────────────────
-// Regular admin/staff nav (tenant-scoped)
+
 const ADMIN_NAV = {
   main: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/domains',   icon: Globe,           label: 'Domains' },
-    { to: '/hosting',   icon: Server,          label: 'Hosting' },
-    { to: '/clients',   icon: Users,           label: 'Clients' },
+    { to: '/domains', icon: Globe, label: 'Domains' },
+    { to: '/hosting', icon: Server, label: 'Hosting' },
+    { to: '/clients', icon: Users, label: 'Clients' },
     { to: '/settings/company', icon: Building2, label: 'Company', roles: ['admin'] },
   ],
   finance: [
-    { to: '/billing',          icon: FileText,  label: 'Billing' },
+    { to: '/billing', icon: FileText, label: 'Billing' },
     { to: '/reports/renewals', icon: BarChart2, label: 'Renewals' },
-    { to: '/reports/revenue',  icon: TrendingUp,label: 'Revenue' },
+    { to: '/reports/revenue', icon: TrendingUp, label: 'Revenue' },
   ],
   system: [
-    { to: '/alerts', icon: Bell,     label: 'Alerts' },
+    { to: '/alerts', icon: Bell, label: 'Alerts' },
     { to: '/uptime', icon: Activity, label: 'Uptime' },
+  ],
+  tools: [
+    { to: '/tools/availability', icon: Search, label: 'Domain Check' },
+    { to: '/tools/password', icon: KeyRound, label: 'Password Gen' },
   ],
   settings: [
     { to: '/settings/profile', icon: Settings, label: 'Profile' },
-    { to: '/settings/users',   icon: Key,      label: 'Team',    roles: ['admin'] },
+    { to: '/settings/users', icon: Key, label: 'Team', roles: ['admin'] },
+    { to: '/settings/activity-log', icon: History, label: 'Activity Log', roles: ['admin'] },
   ],
 }
 
 // Super Admin nav — platform-wide (no tenant-scoped items)
 const SUPER_ADMIN_NAV = {
   platform: [
-    { to: '/dashboard',              icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/super-admin/tenants',    icon: Building2,       label: 'Companies' },
-    { to: '/super-admin/plans',      icon: Shield,          label: 'Plans' },
-    { to: '/super-admin/domains',    icon: Globe,           label: 'All Domains' },
-    { to: '/super-admin/clients',    icon: Users,           label: 'All Clients' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/super-admin/pending', icon: Clock, label: 'Pending Approvals' },
+    { to: '/super-admin/tenants', icon: Building2, label: 'Companies' },
+    { to: '/super-admin/plans', icon: Shield, label: 'Plans' },
+    { to: '/super-admin/domains', icon: Globe, label: 'All Domains' },
+    { to: '/super-admin/clients', icon: Users, label: 'All Clients' },
   ],
   settings: [
     { to: '/settings/profile', icon: Settings, label: 'Profile' },
+    { to: '/settings/activity-log', icon: History, label: 'Activity Log' },
   ],
 }
 
@@ -98,7 +104,7 @@ export default function Sidebar({ open, onClose }) {
       )}
       style={{ background: theme.bg2, borderRight: `1px solid ${theme.border}` }}
     >
-      {/* Brand */}
+     
       <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: `1px solid ${theme.border}` }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-black"
@@ -120,7 +126,6 @@ export default function Sidebar({ open, onClose }) {
         </button>
       </div>
 
-      {/* User pill */}
       <div className="mx-3 my-3 px-3 py-2.5 rounded-xl flex items-center gap-2.5"
         style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}` }}>
         <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
@@ -133,10 +138,9 @@ export default function Sidebar({ open, onClose }) {
         </div>
       </div>
 
-      {/* Nav — role-specific */}
       <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
         {isSuperAdmin ? (
-          // ── Super Admin: platform-wide navigation ──────────────────────
+        
           <>
             <SectionLabel label="Platform" theme={theme} />
             {SUPER_ADMIN_NAV.platform.map(i => (
@@ -149,12 +153,13 @@ export default function Sidebar({ open, onClose }) {
             ))}
           </>
         ) : (
-          // ── Admin / Staff: tenant-scoped navigation ────────────────────
           <>
             <SectionLabel label="Main" theme={theme} />
-            {ADMIN_NAV.main.map(i => (
-              <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
-            ))}
+            {ADMIN_NAV.main
+              .filter(i => !i.roles || i.roles.includes(user?.role))
+              .map(i => (
+                <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
+              ))}
 
             <SectionLabel label="Finance" theme={theme} />
             {ADMIN_NAV.finance.map(i => (
@@ -166,18 +171,22 @@ export default function Sidebar({ open, onClose }) {
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
 
+      
+            <SectionLabel label="Tools" theme={theme} />
+            {ADMIN_NAV.tools.map(i => (
+              <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
+            ))}
+
             <SectionLabel label="Settings" theme={theme} />
             {ADMIN_NAV.settings
               .filter(i => !i.roles || i.roles.includes(user?.role))
               .map(i => (
                 <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
               ))}
-              
           </>
         )}
       </nav>
 
-      {/* Logout */}
       <div className="p-3" style={{ borderTop: `1px solid ${theme.border}` }}>
         <button
           onClick={handleLogout}

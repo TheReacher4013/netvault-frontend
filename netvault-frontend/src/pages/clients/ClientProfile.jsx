@@ -1,4 +1,3 @@
-// ClientProfile.jsx
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { clientService } from '../../services/api'

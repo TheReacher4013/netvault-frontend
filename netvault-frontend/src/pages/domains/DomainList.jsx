@@ -1,8 +1,7 @@
-// ── DomainList.jsx ────────────────────────────────────────────────────────
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Globe, Plus, Search, Filter, Trash2, Eye, Wifi } from 'lucide-react'
+import { Globe, Plus, Search, Filter, Trash2, Eye, Wifi , Activity} from 'lucide-react'
 import { domainService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, StatusBadge, Loader, EmptyState, PageHeader, ConfirmDialog } from '../../components/ui/index'
@@ -40,8 +39,6 @@ export default function DomainList() {
     <div className="space-y-5">
       <PageHeader title="Domains" subtitle={`${data?.data?.data?.totalDocs || 0} total domains`}
         actions={<Button onClick={() => navigate('/domains/add')}><Plus size={14} />Add Domain</Button>} />
-
-      {/* Filters */}
       <Card className="p-4 flex flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
           style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>

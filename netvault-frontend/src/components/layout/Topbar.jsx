@@ -36,7 +36,7 @@ export default function Topbar({ onMenuClick }) {
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 py-3 gap-3"
       style={{ background: `${theme.bg2}ee`, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${theme.border}` }}>
 
-      {/* Left: hamburger + title */}
+  
       <div className="flex items-center gap-3">
         <button onClick={onMenuClick} className="lg:hidden p-2 rounded-lg transition-opacity opacity-60 hover:opacity-100"
           style={{ color: theme.text }}>
@@ -48,9 +48,8 @@ export default function Topbar({ onMenuClick }) {
         </div>
       </div>
 
-      {/* Right: search + bell + avatar */}
       <div className="flex items-center gap-2">
-        {/* Search */}
+ 
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm transition-all duration-200"
           style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
           <Search size={13} style={{ color: theme.muted }} />
@@ -64,7 +63,6 @@ export default function Topbar({ onMenuClick }) {
           {search && <button onClick={() => setSearch('')}><X size={11} style={{ color: theme.muted }} /></button>}
         </div>
 
-        {/* Bell */}
         <div className="relative">
           <button
             onClick={() => setShowNotifs(v => !v)}
@@ -79,7 +77,7 @@ export default function Topbar({ onMenuClick }) {
             )}
           </button>
 
-          {/* Dropdown */}
+    
           {showNotifs && (
             <div className="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden animate-fade-up"
               style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
@@ -120,7 +118,6 @@ export default function Topbar({ onMenuClick }) {
           )}
         </div>
 
-        {/* Avatar */}
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer"
           style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}
           onClick={() => navigate('/settings/profile')}>

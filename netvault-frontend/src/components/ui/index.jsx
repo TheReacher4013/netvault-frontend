@@ -1,4 +1,4 @@
-// ── Button ────────────────────────────────────────────────────────────────
+// ── Button ──────
 import clsx from 'clsx'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -28,7 +28,7 @@ export function Button({ children, variant = 'primary', size = 'md', loading, cl
   )
 }
 
-// ── StatCard ──────────────────────────────────────────────────────────────
+// ── StatCard ─────
 export function StatCard({ label, value, trend, trendUp, icon: Icon, delay = 0, onClick }) {
   const { theme } = useAuth()
   return (
@@ -41,13 +41,10 @@ export function StatCard({ label, value, trend, trendUp, icon: Icon, delay = 0, 
         animationDelay: `${delay}ms`,
       }}
     >
-      {/* Top shimmer line */}
       <div className="absolute top-0 inset-x-0 h-px"
         style={{ background: `linear-gradient(90deg, transparent, ${theme.accent}40, transparent)` }} />
-      {/* Glow blob */}
       <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.06] group-hover:opacity-[0.12] transition-opacity"
         style={{ background: theme.accent }} />
-
       <div className="flex items-start justify-between mb-3">
         <div className="w-9 h-9 rounded-xl flex items-center justify-center"
           style={{ background: `${theme.accent}18` }}>
@@ -67,15 +64,13 @@ export function StatCard({ label, value, trend, trendUp, icon: Icon, delay = 0, 
         {value}
       </div>
       <div className="text-xs font-medium" style={{ color: theme.muted }}>{label}</div>
-
-      {/* Bottom bar */}
       <div className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ background: `linear-gradient(90deg, transparent, ${theme.accent}60, transparent)` }} />
     </div>
   )
 }
 
-// ── StatusBadge ───────────────────────────────────────────────────────────
+// ── StatusBadge ───────
 export function StatusBadge({ status }) {
   const map = {
     active:   'badge-active',
@@ -94,7 +89,7 @@ export function StatusBadge({ status }) {
   return <span className={map[status] || 'badge-pending'}>{status?.toUpperCase()}</span>
 }
 
-// ── Loader ────────────────────────────────────────────────────────────────
+// ── Loader ───────
 export function Loader({ text = 'Loading...' }) {
   const { theme } = useAuth()
   return (
