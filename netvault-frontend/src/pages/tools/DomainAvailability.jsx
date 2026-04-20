@@ -1,8 +1,3 @@
-// src/pages/tools/DomainAvailability.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Implements §10.3 "Domain Availability Checker" — DNS-based quick check
-// plus RDAP WHOIS details when the domain IS registered.
-// ─────────────────────────────────────────────────────────────────────────────
 import { useState } from 'react'
 import { whoisService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
@@ -63,7 +58,7 @@ export default function DomainAvailability() {
     ? 'Already Registered'
     : result?.registered === false
       ? 'Likely Available'
-      : 'Uncertain'
+      : 'Uncertain — verify manually'
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
@@ -102,6 +97,12 @@ export default function DomainAvailability() {
               <p className="font-mono text-lg font-bold" style={{ color: theme.text }}>{result.domain}</p>
               <p className="text-sm font-semibold mt-1" style={{ color: statusColor }}>{statusText}</p>
               <p className="text-xs mt-1" style={{ color: theme.muted }}>{result.reason}</p>
+              {result.source && (
+                <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded mt-1.5"
+                  style={{ background: `${theme.accent}10`, color: theme.accent }}>
+                  via {result.source === 'rdap' ? 'RDAP (authoritative)' : result.source === 'dns' ? 'DNS lookup' : result.source}
+                </span>
+              )}
 
               {result.nameservers?.length > 0 && (
                 <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${theme.border}` }}>
@@ -121,8 +122,13 @@ export default function DomainAvailability() {
               )}
 
               {result.registered === false && (
-                <p className="text-xs mt-3" style={{ color: theme.muted }}>
-                  This domain appears to be unregistered. Confirm availability at your preferred registrar before purchasing.
+                <p className="text-xs mt-3 leading-relaxed" style={{ color: theme.muted }}>
+                  Domain appears unregistered. Always confirm at your registrar (GoDaddy, Namecheap, etc.) before purchasing.
+                </p>
+              )}
+              {result.registered === null && (
+                <p className="text-xs mt-3 leading-relaxed" style={{ color: theme.muted }}>
+                  Result is inconclusive — DNS gave ambiguous signals. Please check directly at a domain registrar to confirm availability.
                 </p>
               )}
             </div>
@@ -136,11 +142,11 @@ export default function DomainAvailability() {
           <p className="text-[10px] font-mono uppercase tracking-widest mb-3" style={{ color: theme.muted }}>WHOIS via RDAP</p>
           <div className="grid sm:grid-cols-2 gap-4 text-xs">
             {[
-              ['Registrar',      whois.registrar],
-              ['Registration',   whois.registrationDate ? format(new Date(whois.registrationDate), 'dd MMM yyyy') : null],
-              ['Expiry',         whois.expiryDate ? format(new Date(whois.expiryDate), 'dd MMM yyyy') : null],
-              ['Last Changed',   whois.lastChanged ? format(new Date(whois.lastChanged), 'dd MMM yyyy') : null],
-              ['Registrant',     whois.registrantName],
+              ['Registrar', whois.registrar],
+              ['Registration', whois.registrationDate ? format(new Date(whois.registrationDate), 'dd MMM yyyy') : null],
+              ['Expiry', whois.expiryDate ? format(new Date(whois.expiryDate), 'dd MMM yyyy') : null],
+              ['Last Changed', whois.lastChanged ? format(new Date(whois.lastChanged), 'dd MMM yyyy') : null],
+              ['Registrant', whois.registrantName],
               ['Registrant Org', whois.registrantOrg],
               ['Registrant Email', whois.registrantEmail],
             ].map(([k, v]) => (
@@ -166,3 +172,4 @@ export default function DomainAvailability() {
     </div>
   )
 }
+

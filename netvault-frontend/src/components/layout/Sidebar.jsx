@@ -3,8 +3,8 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Globe, Server, Users, FileText,
   BarChart2, Bell, Activity, Settings, LogOut,
-  Shield, Building2, X, TrendingUp, Key,
-  Search, KeyRound, History,Clock 
+  Shield, Building2, X, TrendingUp, Key, AlertTriangle,
+  Search, KeyRound, History, Clock
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -46,6 +46,7 @@ const SUPER_ADMIN_NAV = {
     { to: '/super-admin/plans', icon: Shield, label: 'Plans' },
     { to: '/super-admin/domains', icon: Globe, label: 'All Domains' },
     { to: '/super-admin/clients', icon: Users, label: 'All Clients' },
+    { to: '/super-admin/alerts', icon: AlertTriangle, label: 'Alerts' },
   ],
   settings: [
     { to: '/settings/profile', icon: Settings, label: 'Profile' },
@@ -104,7 +105,7 @@ export default function Sidebar({ open, onClose }) {
       )}
       style={{ background: theme.bg2, borderRight: `1px solid ${theme.border}` }}
     >
-     
+
       <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: `1px solid ${theme.border}` }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-black"
@@ -140,7 +141,7 @@ export default function Sidebar({ open, onClose }) {
 
       <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
         {isSuperAdmin ? (
-        
+
           <>
             <SectionLabel label="Platform" theme={theme} />
             {SUPER_ADMIN_NAV.platform.map(i => (
@@ -171,7 +172,7 @@ export default function Sidebar({ open, onClose }) {
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
 
-      
+
             <SectionLabel label="Tools" theme={theme} />
             {ADMIN_NAV.tools.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />

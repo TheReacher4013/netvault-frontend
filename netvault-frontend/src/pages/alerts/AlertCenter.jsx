@@ -7,25 +7,26 @@ import { Bell, CheckCheck, Trash2 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 const SEVERITY_COLORS = {
-  danger:  '#C94040',
+  danger: '#C94040',
   warning: '#F0A045',
   success: '#62B849',
-  info:    '#4A8FA8',
+  info: '#4A8FA8',
 }
 
 const TYPE_ICONS = {
-  domain_expiry:  '🌐',
+  domain_expiry: '🌐',
   hosting_expiry: '🖥️',
-  ssl_expiry:     '🔒',
-  server_down:    '🔴',
-  invoice_overdue:'💳',
-  new_client:     '👤',
-  payment_received:'✅',
-  info:           'ℹ️',
+  ssl_expiry: '🔒',
+  server_down: '🔴',
+  invoice_overdue: '💳',
+  new_client: '👤',
+  payment_received: '✅',
+  info: 'ℹ️',
 }
 
 export default function AlertCenter() {
-  const { theme } = useAuth()
+  const { theme, user } = useAuth()
+  const isSuperAdmin = user?.role === 'superAdmin'
   const qc = useQueryClient()
   const [filter, setFilter] = useState('all')
 
@@ -113,6 +114,12 @@ export default function AlertCenter() {
                     )}
                   </div>
                   <p className="text-xs mt-0.5 leading-relaxed" style={{ color: theme.muted }}>{n.message}</p>
+                  {isSuperAdmin && n.tenantId?.name && (
+                    <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded mt-1"
+                      style={{ background: `${theme.accent}15`, color: theme.accent }}>
+                      {n.tenantId.name}
+                    </span>
+                  )}
                   <p className="text-[10px] mt-1.5 font-mono" style={{ color: theme.muted }}>
                     {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                   </p>

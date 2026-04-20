@@ -83,7 +83,7 @@ export default function App() {
         <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
         <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
         <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
-        <Route path = "/reset-password/:token" element = {<PageTransition><ResetPassword/></PageTransition>}/>
+        <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="/accept-invite/:token" element={<PageTransition><AcceptInvite /></PageTransition>} />
 
         {/* ── Client Portal ─────────────────────────────────────── */}
@@ -173,7 +173,11 @@ export default function App() {
               element={<RoleRoute roles={['superAdmin']}>
                 <PageTransition><AllClients /></PageTransition></RoleRoute>} />
 
-            
+
+            <Route path="/super-admin/alerts"
+              element={<RoleRoute roles={['superAdmin']}>
+                <PageTransition><AlertCenter /></PageTransition></RoleRoute>} />
+
             <Route path="/super-admin/pending"
               element={<RoleRoute roles={['superAdmin']}>
                 <PageTransition><PendingApprovals /></PageTransition></RoleRoute>} />
