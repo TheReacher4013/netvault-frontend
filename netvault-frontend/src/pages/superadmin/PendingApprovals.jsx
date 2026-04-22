@@ -169,7 +169,7 @@ export default function PendingApprovals() {
                             loading={rejectMut.isPending}
                             onClick={handleReject}
                             style={{ background: '#EF4444', color: '#fff' }}>
-                            Reject request
+                            Reject request.
                         </Button>
                     </div>
                 </div>

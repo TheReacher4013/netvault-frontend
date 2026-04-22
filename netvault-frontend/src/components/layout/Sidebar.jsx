@@ -8,14 +8,12 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 
-
 const ADMIN_NAV = {
   main: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/domains', icon: Globe, label: 'Domains' },
     { to: '/hosting', icon: Server, label: 'Hosting' },
     { to: '/clients', icon: Users, label: 'Clients' },
-    { to: '/settings/company', icon: Building2, label: 'Company', roles: ['admin'] },
   ],
   finance: [
     { to: '/billing', icon: FileText, label: 'Billing' },
@@ -37,15 +35,13 @@ const ADMIN_NAV = {
   ],
 }
 
-// Super Admin nav — platform-wide (no tenant-scoped items)
+// Super Admin nav — removed All Domains & All Clients (now inside Companies)
 const SUPER_ADMIN_NAV = {
   platform: [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/super-admin/pending', icon: Clock, label: 'Pending Approvals' },
     { to: '/super-admin/tenants', icon: Building2, label: 'Companies' },
     { to: '/super-admin/plans', icon: Shield, label: 'Plans' },
-    { to: '/super-admin/domains', icon: Globe, label: 'All Domains' },
-    { to: '/super-admin/clients', icon: Users, label: 'All Clients' },
     { to: '/super-admin/alerts', icon: AlertTriangle, label: 'Alerts' },
   ],
   settings: [
@@ -105,7 +101,6 @@ export default function Sidebar({ open, onClose }) {
       )}
       style={{ background: theme.bg2, borderRight: `1px solid ${theme.border}` }}
     >
-
       <div className="flex items-center justify-between px-4 py-5" style={{ borderBottom: `1px solid ${theme.border}` }}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base font-black"
@@ -141,13 +136,11 @@ export default function Sidebar({ open, onClose }) {
 
       <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
         {isSuperAdmin ? (
-
           <>
             <SectionLabel label="Platform" theme={theme} />
             {SUPER_ADMIN_NAV.platform.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
-
             <SectionLabel label="Settings" theme={theme} />
             {SUPER_ADMIN_NAV.settings.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
@@ -161,23 +154,18 @@ export default function Sidebar({ open, onClose }) {
               .map(i => (
                 <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
               ))}
-
             <SectionLabel label="Finance" theme={theme} />
             {ADMIN_NAV.finance.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
-
             <SectionLabel label="System" theme={theme} />
             {ADMIN_NAV.system.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
-
-
             <SectionLabel label="Tools" theme={theme} />
             {ADMIN_NAV.tools.map(i => (
               <NavItem key={i.to} item={i} theme={theme} onClick={onClose} />
             ))}
-
             <SectionLabel label="Settings" theme={theme} />
             {ADMIN_NAV.settings
               .filter(i => !i.roles || i.roles.includes(user?.role))

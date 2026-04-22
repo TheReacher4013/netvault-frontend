@@ -17,6 +17,9 @@ export default function ClientList() {
   const isAdmin = user?.role === 'admin' || user?.role === 'superAdmin'
 
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(12)
+  const [perPageInput, setPerPageInput] = useState('12')
   const [showAdd, setShowAdd] = useState(false)
   const [delId, setDelId] = useState(null)
   const [revokeId, setRevokeId] = useState(null)
@@ -29,8 +32,9 @@ export default function ClientList() {
   })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['clients', search],
-    queryFn: () => clientService.getAll({ search, limit: 20 }),
+    queryKey: ['clients', search, page, perPage],
+    queryFn: () => clientService.getAll({ search, page, limit: perPage }),
+    keepPreviousData: true,
   })
 
   const addMut = useMutation({
@@ -70,16 +74,20 @@ export default function ClientList() {
   })
 
   const clients = data?.data?.data?.docs || []
+  const totalPages = data?.data?.data?.totalPages || 1
   if (isLoading) return <Loader text="Loading clients..." />
 
   const handleAdd = () => {
-    if (!form.name || !form.email) return toast.error('Name and email required')
+    if (!form.name.trim()) return toast.error('Name is required')
+    if (!/^[a-zA-Z\s]+$/.test(form.name.trim())) return toast.error('Name should contain only letters')
+    if (!form.email.trim()) return toast.error('Email is required')
+    if (form.phone && !/^\d{10}$/.test(form.phone.trim())) return toast.error('Mobile number must be exactly 10 digits')
     if (form.portalAccess) {
       if (!form.password) return toast.error('Set a password or turn off portal access')
       if (form.password.length < 6) return toast.error('Password must be at least 6 characters')
     }
     const payload = {
-      name: form.name, email: form.email, phone: form.phone, company: form.company,
+      name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), company: form.company.trim(),
       ...(form.portalAccess && form.password ? { password: form.password } : {}),
     }
     addMut.mutate(payload)
@@ -107,14 +115,21 @@ export default function ClientList() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {clients.map((c, i) => {
             const hasAccess = !!c.userId  // backend virtual also returns hasPortalAccess; userId is authoritative
+            const srNo = (page - 1) * perPage + i + 1
             return (
               <Card key={c._id} className="p-5 transition-transform animate-fade-up"
                 style={{ animationDelay: `${i * 50}ms` }}>
                 <div className="flex items-start gap-3 mb-3 cursor-pointer"
                   onClick={() => navigate(`/clients/${c._id}`)}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold flex-shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
-                    {c.name.charAt(0)}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold"
+                      style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
+                      {c.name.charAt(0)}
+                    </div>
+                    <span className="absolute -top-1.5 -left-1.5 text-[9px] font-mono px-1 py-0.5 rounded"
+                      style={{ background: `${theme.accent}20`, color: theme.muted, lineHeight: 1 }}>
+                      #{srNo}
+                    </span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-sm truncate" style={{ color: theme.text }}>{c.name}</p>
@@ -182,21 +197,76 @@ export default function ClientList() {
         </div>
       )}
 
+      {/* Pagination */}
+      {(clients.length > 0 || page > 1) && (
+        <div className="flex items-center justify-between gap-3 flex-wrap py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono" style={{ color: theme.muted }}>Show</span>
+            <input
+              type="number" min="1" max="100"
+              value={perPageInput}
+              onChange={e => setPerPageInput(e.target.value)}
+              onBlur={() => {
+                const v = parseInt(perPageInput, 10)
+                if (v > 0) { setPerPage(v); setPage(1) }
+                else setPerPageInput(String(perPage))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const v = parseInt(perPageInput, 10)
+                  if (v > 0) { setPerPage(v); setPage(1) }
+                  else setPerPageInput(String(perPage))
+                }
+              }}
+              className="w-14 text-center px-2 py-1 rounded-lg text-xs font-mono outline-none"
+              style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}`, color: theme.text }}
+            />
+            <span className="text-[11px] font-mono" style={{ color: theme.muted }}>per page</span>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="px-2.5 py-1 rounded-lg text-xs font-mono disabled:opacity-30"
+                style={{ background: `${theme.accent}10`, color: theme.muted }}>‹</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setPage(p)}
+                  className="w-7 h-7 rounded-lg text-xs font-mono transition-colors"
+                  style={{ background: p === page ? theme.accent : 'transparent', color: p === page ? theme.bg : theme.muted }}>
+                  {p}
+                </button>
+              ))}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="px-2.5 py-1 rounded-lg text-xs font-mono disabled:opacity-30"
+                style={{ background: `${theme.accent}10`, color: theme.muted }}>›</button>
+            </div>
+          )}
+          <span className="text-[11px] font-mono" style={{ color: theme.muted }}>
+            {data?.data?.data?.totalDocs || 0} total
+          </span>
+        </div>
+      )}
+
       {/* Add modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Client">
         <div className="space-y-3">
           <Input label="Name *" value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Client name" />
-          <Input label="Email *" type="email" value={form.email}
+            onChange={e => {
+              const val = e.target.value.replace(/[^a-zA-Z\s]/g, '')
+              setForm(f => ({ ...f, name: val }))
+            }}
+            placeholder="Client name (letters only)" />
+          <Input label="Email ID *" type="email" value={form.email}
             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
             placeholder="client@email.com" />
           <Input label="Company" value={form.company}
             onChange={e => setForm(f => ({ ...f, company: e.target.value }))}
             placeholder="Company name" />
-          <Input label="Phone" value={form.phone}
-            onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-            placeholder="+91..." />
+          <Input label="Contact Number" value={form.phone}
+            onChange={e => {
+              const val = e.target.value.replace(/\D/g, '').slice(0, 10)
+              setForm(f => ({ ...f, phone: val }))
+            }}
+            placeholder="Contact Number" />
 
           {/* Portal-access toggle */}
           <div className="pt-2" style={{ borderTop: `1px solid ${theme.border}` }}>

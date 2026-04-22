@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Menu, Bell, Search, X } from 'lucide-react'
+import { Menu, Bell, Search, X, User, Building2, LogOut, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
 import { notificationService } from '../../services/api'
@@ -8,10 +8,13 @@ import { formatDistanceToNow } from 'date-fns'
 import clsx from 'clsx'
 
 export default function Topbar({ onMenuClick }) {
-  const { theme, user } = useAuth()
+  const { theme, user, logout } = useAuth()
   const navigate = useNavigate()
   const [showNotifs, setShowNotifs] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const [search, setSearch] = useState('')
+  const profileRef = useRef(null)
+  const notifRef = useRef(null)
 
   const { data: nData } = useQuery({
     queryKey: ['notifications'],
@@ -25,18 +28,36 @@ export default function Topbar({ onMenuClick }) {
     await notificationService.markRead(id)
   }
 
+  const handleLogout = () => {
+    setShowProfile(false)
+    logout()
+    navigate('/login')
+  }
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false)
+      if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifs(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   const severityDot = (s) => ({
-    danger:  '#C94040',
+    danger: '#C94040',
     warning: '#F0A045',
     success: '#62B849',
-    info:    '#4A8FA8',
+    info: '#4A8FA8',
   }[s] || '#888')
+
+  const isSuperAdmin = user?.role === 'superAdmin'
+  const isAdmin = user?.role === 'admin'
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 md:px-6 py-3 gap-3"
       style={{ background: `${theme.bg2}ee`, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${theme.border}` }}>
 
-  
       <div className="flex items-center gap-3">
         <button onClick={onMenuClick} className="lg:hidden p-2 rounded-lg transition-opacity opacity-60 hover:opacity-100"
           style={{ color: theme.text }}>
@@ -49,23 +70,12 @@ export default function Topbar({ onMenuClick }) {
       </div>
 
       <div className="flex items-center gap-2">
- 
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm transition-all duration-200"
-          style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
-          <Search size={13} style={{ color: theme.muted }} />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search domains, clients…"
-            className="bg-transparent outline-none w-44 text-xs"
-            style={{ color: theme.text, fontFamily: "'DM Sans', sans-serif" }}
-          />
-          {search && <button onClick={() => setSearch('')}><X size={11} style={{ color: theme.muted }} /></button>}
-        </div>
+       
 
-        <div className="relative">
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
           <button
-            onClick={() => setShowNotifs(v => !v)}
+            onClick={() => { setShowNotifs(v => !v); setShowProfile(false) }}
             className="relative p-2 rounded-xl transition-all duration-200 hover:scale-105"
             style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}` }}>
             <Bell size={16} style={{ color: theme.text }} />
@@ -77,7 +87,6 @@ export default function Topbar({ onMenuClick }) {
             )}
           </button>
 
-    
           {showNotifs && (
             <div className="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden animate-fade-up"
               style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
@@ -118,10 +127,76 @@ export default function Topbar({ onMenuClick }) {
           )}
         </div>
 
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold cursor-pointer"
-          style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}
-          onClick={() => navigate('/settings/profile')}>
-          {user?.name?.charAt(0).toUpperCase()}
+        {/* Profile Dropdown */}
+        <div className="relative" ref={profileRef}>
+          <button
+            onClick={() => { setShowProfile(v => !v); setShowNotifs(false) }}
+            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl transition-all duration-200 hover:bg-white/5"
+            style={{ border: `1px solid ${showProfile ? theme.accent : theme.border}` }}
+          >
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-xs font-semibold leading-none" style={{ color: theme.text }}>{user?.name?.split(' ')[0]}</p>
+              <p className="text-[10px] font-mono leading-none mt-0.5 capitalize" style={{ color: theme.muted }}>{user?.role}</p>
+            </div>
+            <ChevronDown size={12} style={{ color: theme.muted, transform: showProfile ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+
+          {showProfile && (
+            <div className="absolute right-0 top-11 w-56 rounded-2xl shadow-2xl z-50 overflow-hidden animate-fade-up"
+              style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
+              {/* User info header */}
+              <div className="px-4 py-3" style={{ borderBottom: `1px solid ${theme.border}` }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold truncate" style={{ color: theme.text }}>{user?.name}</p>
+                    <p className="text-[10px] font-mono truncate" style={{ color: theme.muted }}>{user?.email}</p>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded capitalize inline-block mt-0.5"
+                      style={{ background: `${theme.accent}15`, color: theme.accent }}>{user?.role}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu items */}
+              <div className="p-1.5 space-y-0.5">
+                <button
+                  onClick={() => { setShowProfile(false); navigate('/settings/profile') }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-white/5 text-left"
+                  style={{ color: theme.text }}>
+                  <User size={14} style={{ color: theme.accent }} />
+                  My Profile
+                </button>
+
+                {(isAdmin || isSuperAdmin) && (
+                  <button
+                    onClick={() => { setShowProfile(false); navigate('/settings/profile') }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-white/5 text-left"
+                    style={{ color: theme.text }}>
+                    <Building2 size={14} style={{ color: theme.accent }} />
+                    Company Settings
+                  </button>
+                )}
+              </div>
+
+              {/* Sign out */}
+              <div className="p-1.5 pt-0" style={{ borderTop: `1px solid ${theme.border}` }}>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-red-500/10 text-left"
+                  style={{ color: '#C94040' }}>
+                  <LogOut size={14} />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

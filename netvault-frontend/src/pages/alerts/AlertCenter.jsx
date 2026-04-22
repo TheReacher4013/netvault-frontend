@@ -29,11 +29,14 @@ export default function AlertCenter() {
   const isSuperAdmin = user?.role === 'superAdmin'
   const qc = useQueryClient()
   const [filter, setFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
+  const [perPageInput, setPerPageInput] = useState('10')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notifications-all', filter],
+    queryKey: ['notifications-all', filter, page, perPage],
     queryFn: () => notificationService.getAll({
-      limit: 50,
+      page, limit: perPage,
       ...(filter === 'unread' ? { read: false } : filter === 'read' ? { read: true } : {}),
     }),
     refetchInterval: 30000,
@@ -54,6 +57,8 @@ export default function AlertCenter() {
 
   const notifs = data?.data?.data?.notifications || []
   const unread = data?.data?.data?.unreadCount || 0
+  const totalPages = data?.data?.data?.totalPages || 1
+  const totalDocs = data?.data?.data?.total || notifs.length
 
   if (isLoading) return <Loader text="Loading alerts..." />
 
@@ -93,57 +98,110 @@ export default function AlertCenter() {
           <EmptyState icon={Bell} title="No notifications" description="You're all caught up!" />
         ) : (
           <div className="divide-y" style={{ borderColor: theme.border }}>
-            {notifs.map((n) => (
-              <div key={n._id}
-                className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02]"
-                style={{ opacity: n.read ? 0.55 : 1 }}>
+            {notifs.map((n, i) => {
+              const srNo = (page - 1) * perPage + i + 1
+              return (
+                <div key={n._id}
+                  className="flex items-start gap-3 px-4 py-4 transition-colors hover:bg-white/[0.02]"
+                  style={{ opacity: n.read ? 0.55 : 1 }}>
 
-                {/* Icon */}
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                  style={{ background: `${SEVERITY_COLORS[n.severity] || theme.accent}12` }}>
-                  {TYPE_ICONS[n.type] || '🔔'}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-semibold leading-tight" style={{ color: theme.text }}>{n.title}</p>
-                    {!n.read && (
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-                        style={{ background: SEVERITY_COLORS[n.severity] || theme.accent }} />
-                    )}
+                  {/* Sr No + Icon */}
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <span className="text-[9px] font-mono" style={{ color: theme.muted }}>#{srNo}</span>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base"
+                      style={{ background: `${SEVERITY_COLORS[n.severity] || theme.accent}12` }}>
+                      {TYPE_ICONS[n.type] || '🔔'}
+                    </div>
                   </div>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: theme.muted }}>{n.message}</p>
-                  {isSuperAdmin && n.tenantId?.name && (
-                    <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded mt-1"
-                      style={{ background: `${theme.accent}15`, color: theme.accent }}>
-                      {n.tenantId.name}
-                    </span>
-                  )}
-                  <p className="text-[10px] mt-1.5 font-mono" style={{ color: theme.muted }}>
-                    {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-                  </p>
-                </div>
 
-                {/* Actions */}
-                <div className="flex gap-1 flex-shrink-0">
-                  {!n.read && (
-                    <button onClick={() => markReadMut.mutate(n._id)}
-                      className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" style={{ color: theme.accent }}
-                      title="Mark as read">
-                      <CheckCheck size={13} />
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold leading-tight" style={{ color: theme.text }}>{n.title}</p>
+                      {!n.read && (
+                        <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
+                          style={{ background: SEVERITY_COLORS[n.severity] || theme.accent }} />
+                      )}
+                    </div>
+                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: theme.muted }}>{n.message}</p>
+                    {isSuperAdmin && n.tenantId?.name && (
+                      <span className="inline-block text-[10px] font-mono px-2 py-0.5 rounded mt-1"
+                        style={{ background: `${theme.accent}15`, color: theme.accent }}>
+                        {n.tenantId.name}
+                      </span>
+                    )}
+                    <p className="text-[10px] mt-1.5 font-mono" style={{ color: theme.muted }}>
+                      {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-1 flex-shrink-0">
+                    {!n.read && (
+                      <button onClick={() => markReadMut.mutate(n._id)}
+                        className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" style={{ color: theme.accent }}
+                        title="Mark as read">
+                        <CheckCheck size={13} />
+                      </button>
+                    )}
+                    <button onClick={() => deleteMut.mutate(n._id)}
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors" style={{ color: '#C94040' }}
+                      title="Delete">
+                      <Trash2 size={13} />
                     </button>
-                  )}
-                  <button onClick={() => deleteMut.mutate(n._id)}
-                    className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors" style={{ color: '#C94040' }}
-                    title="Delete">
-                    <Trash2 size={13} />
-                  </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between gap-3 p-4 flex-wrap" style={{ borderTop: `1px solid ${theme.border}` }}>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono" style={{ color: theme.muted }}>Show</span>
+            <input
+              type="number" min="1" max="100"
+              value={perPageInput}
+              onChange={e => setPerPageInput(e.target.value)}
+              onBlur={() => {
+                const v = parseInt(perPageInput, 10)
+                if (v > 0) { setPerPage(v); setPage(1) }
+                else setPerPageInput(String(perPage))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const v = parseInt(perPageInput, 10)
+                  if (v > 0) { setPerPage(v); setPage(1) }
+                  else setPerPageInput(String(perPageInput))
+                }
+              }}
+              className="w-14 text-center px-2 py-1 rounded-lg text-xs font-mono outline-none"
+              style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}`, color: theme.text }}
+            />
+            <span className="text-[11px] font-mono" style={{ color: theme.muted }}>per page</span>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                className="px-2.5 py-1 rounded-lg text-xs font-mono disabled:opacity-30"
+                style={{ background: `${theme.accent}10`, color: theme.muted }}>‹</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setPage(p)}
+                  className="w-7 h-7 rounded-lg text-xs font-mono transition-colors"
+                  style={{ background: p === page ? theme.accent : 'transparent', color: p === page ? theme.bg : theme.muted }}>
+                  {p}
+                </button>
+              ))}
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                className="px-2.5 py-1 rounded-lg text-xs font-mono disabled:opacity-30"
+                style={{ background: `${theme.accent}10`, color: theme.muted }}>›</button>
+            </div>
+          )}
+          <span className="text-[11px] font-mono" style={{ color: theme.muted }}>
+            {totalDocs} total
+          </span>
+        </div>
       </Card>
     </div>
   )

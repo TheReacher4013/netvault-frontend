@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { billingService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, CardHeader, StatusBadge, Loader, PageHeader } from '../../components/ui/index'
-import { ArrowLeft, Download, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Download, CheckCircle, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -12,6 +13,8 @@ export default function InvoiceDetail() {
   const { theme } = useAuth()
   const navigate = useNavigate()
   const qc = useQueryClient()
+
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoice', id],
@@ -22,6 +25,25 @@ export default function InvoiceDetail() {
     mutationFn: (s) => billingService.updateStatus(id, s),
     onSuccess: () => { toast.success('Status updated'); qc.invalidateQueries(['invoice', id]); qc.invalidateQueries(['invoices']) },
   })
+
+  const deleteMut = useMutation({
+    mutationFn: () => billingService.remove(id),
+    onSuccess: () => {
+      toast.success('Invoice deleted')
+      qc.invalidateQueries(['invoices'])
+      navigate('/billing')
+    },
+    onError: () => toast.error('Failed to delete invoice'),
+  })
+
+  const handleDelete = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true)
+      setTimeout(() => setConfirmDelete(false), 4000)
+      return
+    }
+    deleteMut.mutate()
+  }
 
   const handleDownload = async () => {
     try {
@@ -52,6 +74,20 @@ export default function InvoiceDetail() {
                 <CheckCircle size={13} />Mark Paid
               </Button>
             )}
+            {/* Delete Button */}
+            <button
+              onClick={handleDelete}
+              disabled={deleteMut.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: confirmDelete ? '#C94040' : '#C9404018',
+                color: confirmDelete ? '#fff' : '#C94040',
+                border: '1px solid #C9404040',
+              }}
+            >
+              <Trash2 size={13} />
+              {deleteMut.isPending ? 'Deleting…' : confirmDelete ? 'Confirm?' : 'Delete'}
+            </button>
           </div>
         }
       />
@@ -150,6 +186,25 @@ export default function InvoiceDetail() {
                 </button>
               ))}
             </div>
+          </Card>
+
+          {/* Danger zone */}
+          <Card className="p-4">
+            <p className="text-[10px] font-mono uppercase tracking-wider mb-3" style={{ color: theme.muted }}>Danger Zone</p>
+            <button
+              onClick={handleDelete}
+              disabled={deleteMut.isPending}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: confirmDelete ? '#C94040' : '#C9404015',
+                color: confirmDelete ? '#fff' : '#C94040',
+                border: '1px solid #C9404040',
+              }}
+            >
+              <Trash2 size={15} />
+              {deleteMut.isPending ? 'Deleting…' : confirmDelete ? 'Tap again to confirm' : 'Delete Invoice'}
+            </button>
+            <p className="text-[10px] mt-2 text-center" style={{ color: theme.muted }}>This action cannot be undone</p>
           </Card>
         </div>
       </div>

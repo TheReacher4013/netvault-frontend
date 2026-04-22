@@ -1,5 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
+import { Routes, Route } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -60,8 +59,6 @@ import NotFound from './pages/NotFound'
 
 export default function App() {
   const { loading } = useAuth()
-  const location = useLocation()
-
   if (loading) {
     return (
       <div style={{ background: 'var(--nv-bg, #0A0B0F)' }} className="min-h-screen flex items-center justify-center">
@@ -75,118 +72,116 @@ export default function App() {
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+    <Routes>
 
-        {/* ── Public ─────────────────────────────────────────────── */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-        <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-        <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
-        <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
-        <Route path="/accept-invite/:token" element={<PageTransition><AcceptInvite /></PageTransition>} />
+      {/* ── Public ─────────────────────────────────────────────── */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+      <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+      <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+      <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
+      <Route path="/accept-invite/:token" element={<PageTransition><AcceptInvite /></PageTransition>} />
 
-        {/* ── Client Portal ─────────────────────────────────────── */}
-        {/* Clients bypass PlanStatusGuard — they access their data via
+      {/* ── Client Portal ─────────────────────────────────────── */}
+      {/* Clients bypass PlanStatusGuard — they access their data via
             /api/client-portal/* which has its own scoping */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<RoleRoute roles={['client']} fallback="/dashboard"><ClientPortalLayout /></RoleRoute>}>
-            <Route path="/client-portal" element={<PageTransition><ClientOverview /></PageTransition>} />
-            <Route path="/client-portal/domains" element={<PageTransition><ClientDomains /></PageTransition>} />
-            <Route path="/client-portal/hosting" element={<PageTransition><ClientHosting /></PageTransition>} />
-            <Route path="/client-portal/invoices" element={<PageTransition><ClientInvoicesList /></PageTransition>} />
-            <Route path="/client-portal/invoices/:id" element={<PageTransition><ClientInvoiceDetail /></PageTransition>} />
-            <Route path="/client-portal/alerts" element={<PageTransition><ClientAlerts /></PageTransition>} />
-            <Route path="/client-portal/profile" element={<PageTransition><ClientPortalProfile /></PageTransition>} />
-          </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route element={<RoleRoute roles={['client']} fallback="/dashboard"><ClientPortalLayout /></RoleRoute>}>
+          <Route path="/client-portal" element={<PageTransition><ClientOverview /></PageTransition>} />
+          <Route path="/client-portal/domains" element={<PageTransition><ClientDomains /></PageTransition>} />
+          <Route path="/client-portal/hosting" element={<PageTransition><ClientHosting /></PageTransition>} />
+          <Route path="/client-portal/invoices" element={<PageTransition><ClientInvoicesList /></PageTransition>} />
+          <Route path="/client-portal/invoices/:id" element={<PageTransition><ClientInvoiceDetail /></PageTransition>} />
+          <Route path="/client-portal/alerts" element={<PageTransition><ClientAlerts /></PageTransition>} />
+          <Route path="/client-portal/profile" element={<PageTransition><ClientPortalProfile /></PageTransition>} />
         </Route>
+      </Route>
 
-        {/* ── Admin / Staff / SuperAdmin-----*/}
-        <Route element={<ProtectedRoute />}>
-          <Route element={
-            <PlanStatusGuard>
-              <Layout />
-            </PlanStatusGuard>
-          }>
-            <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+      {/* ── Admin / Staff / SuperAdmin-----*/}
+      <Route element={<ProtectedRoute />}>
+        <Route element={
+          <PlanStatusGuard>
+            <Layout />
+          </PlanStatusGuard>
+        }>
+          <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
 
-            {/* Domains */}
-            <Route path="/domains" element={<PageTransition><DomainList /></PageTransition>} />
-            <Route path="/domains/add" element={<PageTransition><AddDomain /></PageTransition>} />
-            <Route path="/domains/:id" element={<PageTransition><DomainDetail /></PageTransition>} />
-            <Route path="/domains/:id/dns" element={<PageTransition><DNSManager /></PageTransition>} />
+          {/* Domains */}
+          <Route path="/domains" element={<PageTransition><DomainList /></PageTransition>} />
+          <Route path="/domains/add" element={<PageTransition><AddDomain /></PageTransition>} />
+          <Route path="/domains/:id" element={<PageTransition><DomainDetail /></PageTransition>} />
+          <Route path="/domains/:id/dns" element={<PageTransition><DNSManager /></PageTransition>} />
 
-            {/* Hosting */}
-            <Route path="/hosting" element={<PageTransition><HostingList /></PageTransition>} />
-            <Route path="/hosting/add" element={<PageTransition><AddHosting /></PageTransition>} />
-            <Route path="/hosting/:id" element={<PageTransition><HostingDetail /></PageTransition>} />
+          {/* Hosting */}
+          <Route path="/hosting" element={<PageTransition><HostingList /></PageTransition>} />
+          <Route path="/hosting/add" element={<PageTransition><AddHosting /></PageTransition>} />
+          <Route path="/hosting/:id" element={<PageTransition><HostingDetail /></PageTransition>} />
 
-            {/* Clients */}
-            <Route path="/clients" element={<PageTransition><ClientList /></PageTransition>} />
-            <Route path="/clients/:id" element={<PageTransition><ClientProfile /></PageTransition>} />
-            <Route path="/clients/:id/vault" element={<PageTransition><CredentialVault /></PageTransition>} />
+          {/* Clients */}
+          <Route path="/clients" element={<PageTransition><ClientList /></PageTransition>} />
+          <Route path="/clients/:id" element={<PageTransition><ClientProfile /></PageTransition>} />
+          <Route path="/clients/:id/vault" element={<PageTransition><CredentialVault /></PageTransition>} />
 
-            {/* Billing */}
-            <Route path="/billing" element={<PageTransition><InvoiceList /></PageTransition>} />
-            <Route path="/billing/create" element={<PageTransition><CreateInvoice /></PageTransition>} />
-            <Route path="/billing/:id" element={<PageTransition><InvoiceDetail /></PageTransition>} />
+          {/* Billing */}
+          <Route path="/billing" element={<PageTransition><InvoiceList /></PageTransition>} />
+          <Route path="/billing/create" element={<PageTransition><CreateInvoice /></PageTransition>} />
+          <Route path="/billing/:id" element={<PageTransition><InvoiceDetail /></PageTransition>} />
 
-            {/* Reports */}
-            <Route path="/reports/renewals" element={<PageTransition><RenewalReport /></PageTransition>} />
-            <Route path="/reports/revenue" element={<PageTransition><RevenueReport /></PageTransition>} />
+          {/* Reports */}
+          <Route path="/reports/renewals" element={<PageTransition><RenewalReport /></PageTransition>} />
+          <Route path="/reports/revenue" element={<PageTransition><RevenueReport /></PageTransition>} />
 
-            {/* System */}
-            <Route path="/uptime" element={<PageTransition><UptimeMonitor /></PageTransition>} />
-            <Route path="/alerts" element={<PageTransition><AlertCenter /></PageTransition>} />
+          {/* System */}
+          <Route path="/uptime" element={<PageTransition><UptimeMonitor /></PageTransition>} />
+          <Route path="/alerts" element={<PageTransition><AlertCenter /></PageTransition>} />
 
-            {/* Tools */}
-            <Route path="/tools/availability" element={<PageTransition><DomainAvailability /></PageTransition>} />
-            <Route path="/tools/password" element={<PageTransition><PasswordGenerator /></PageTransition>} />
+          {/* Tools */}
+          <Route path="/tools/availability" element={<PageTransition><DomainAvailability /></PageTransition>} />
+          <Route path="/tools/password" element={<PageTransition><PasswordGenerator /></PageTransition>} />
 
-            {/* Settings */}
-            <Route path="/settings/profile" element={<PageTransition><ProfileSettings /></PageTransition>} />
-            <Route path="/settings/company" element={<PageTransition><CompanySettings /></PageTransition>} />
-            <Route path="/settings/users"
-              element={<RoleRoute roles={['admin', 'superAdmin']}>
-                <PageTransition><UserManagement /></PageTransition></RoleRoute>} />
-            <Route path="/settings/activity-log"
-              element={<RoleRoute roles={['admin', 'superAdmin']}>
-                <PageTransition><ActivityLog /></PageTransition></RoleRoute>} />
+          {/* Settings */}
+          <Route path="/settings/profile" element={<PageTransition><ProfileSettings /></PageTransition>} />
+          <Route path="/settings/company" element={<PageTransition><CompanySettings /></PageTransition>} />
+          <Route path="/settings/users"
+            element={<RoleRoute roles={['admin', 'superAdmin']}>
+              <PageTransition><UserManagement /></PageTransition></RoleRoute>} />
+          <Route path="/settings/activity-log"
+            element={<RoleRoute roles={['admin', 'superAdmin']}>
+              <PageTransition><ActivityLog /></PageTransition></RoleRoute>} />
 
-            {/* Super Admin */}
-            <Route path="/super-admin/tenants"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><TenantList /></PageTransition></RoleRoute>} />
-            <Route path="/super-admin/tenants/create"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><CreateTenant /></PageTransition></RoleRoute>} />
-            <Route path="/super-admin/tenants/:id"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><TenantDetail /></PageTransition></RoleRoute>} />
-            <Route path="/super-admin/plans"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><PlanManagement /></PageTransition></RoleRoute>} />
-            <Route path="/super-admin/domains"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><AllDomains /></PageTransition></RoleRoute>} />
-            <Route path="/super-admin/clients"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><AllClients /></PageTransition></RoleRoute>} />
+          {/* Super Admin */}
+          <Route path="/super-admin/tenants"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><TenantList /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/tenants/create"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><CreateTenant /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/tenants/:id"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><TenantDetail /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/plans"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><PlanManagement /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/domains"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><AllDomains /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/clients"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><AllClients /></PageTransition></RoleRoute>} />
 
 
-            <Route path="/super-admin/alerts"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><AlertCenter /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/alerts"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><AlertCenter /></PageTransition></RoleRoute>} />
 
-            <Route path="/super-admin/pending"
-              element={<RoleRoute roles={['superAdmin']}>
-                <PageTransition><PendingApprovals /></PageTransition></RoleRoute>} />
+          <Route path="/super-admin/pending"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><PendingApprovals /></PageTransition></RoleRoute>} />
 
-          </Route>
         </Route>
+      </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   )
 }

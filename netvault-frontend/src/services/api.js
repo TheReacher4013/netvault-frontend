@@ -13,7 +13,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-
 const PUBLIC_PATHS = [
   '/otp/',
   '/invite/',
@@ -44,7 +43,6 @@ api.interceptors.response.use(
 
 export default api
 
-// ── Auth ──────────────────────────────────────────────────────────────────
 export const authService = {
   login: (d) => api.post('/auth/login', d),
   register: (d) => api.post('/auth/register', d),
@@ -54,7 +52,6 @@ export const authService = {
   changePassword: (d) => api.patch('/auth/change-password', d),
 }
 
-// ── 2FA ──────────────────────────────────────────────────────────────────
 export const twoFactorService = {
   setup: () => api.post('/auth/2fa/setup'),
   verifySetup: (code) => api.post('/auth/2fa/verify-setup', { code }),
@@ -62,20 +59,17 @@ export const twoFactorService = {
   verifyLogin: (tempToken, code) => api.post('/auth/2fa/verify-login', { tempToken, code }),
 }
 
-// ── WHOIS / Availability ─────────────────────────────────────────────────
 export const whoisService = {
   checkAvailability: (name) => api.get('/whois/availability', { params: { name } }),
   lookup: (name) => api.get('/whois/lookup', { params: { name } }),
   refresh: (id) => api.post(`/whois/refresh/${id}`),
 }
 
-// ── Activity Log ─────────────────────────────────────────────────────────
 export const activityService = {
   getAll: (params) => api.get('/activity', { params }),
   getEntityTimeline: (type, id) => api.get(`/activity/entity/${type}/${id}`),
 }
 
-// ── Client Portal ────────────────────────────────────────────────────────
 export const clientPortalService = {
   overview: () => api.get('/client-portal/overview'),
   domains: () => api.get('/client-portal/domains'),
@@ -86,7 +80,6 @@ export const clientPortalService = {
   alerts: () => api.get('/client-portal/alerts'),
 }
 
-// ── Domains ──────────────────────────────────────────────────────────────
 export const domainService = {
   getAll: (params) => api.get('/domains', { params }),
   getOne: (id) => api.get(`/domains/${id}`),
@@ -99,9 +92,9 @@ export const domainService = {
   updateDNS: (id, rid, d) => api.put(`/domains/${id}/dns/${rid}`, d),
   deleteDNS: (id, rid) => api.delete(`/domains/${id}/dns/${rid}`),
   importCSV: (form) => api.post('/domains/import-csv', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  checkNow: (id) => api.post(`/domains/${id}/check`),
 }
 
-// ── Hosting ──────────────────────────────────────────────────────────────
 export const hostingService = {
   getAll: (params) => api.get('/hosting', { params }),
   getOne: (id) => api.get(`/hosting/${id}`),
@@ -114,7 +107,6 @@ export const hostingService = {
   getStats: () => api.get('/hosting/stats'),
 }
 
-// ── Clients ──────────────────────────────────────────────────────────────
 export const clientService = {
   getAll: (params) => api.get('/clients', { params }),
   getOne: (id) => api.get(`/clients/${id}`),
@@ -130,7 +122,6 @@ export const clientService = {
   revokePortalAccess: (id) => api.delete(`/clients/${id}/portal-access`),
 }
 
-// ── Billing ──────────────────────────────────────────────────────────────
 export const billingService = {
   getAll: (params) => api.get('/billing/invoices', { params }),
   getOne: (id) => api.get(`/billing/invoices/${id}`),
@@ -141,7 +132,6 @@ export const billingService = {
   getSummary: () => api.get('/billing/summary'),
 }
 
-// ── Notifications ────────────────────────────────────────────────────────
 export const notificationService = {
   getAll: (params) => api.get('/notifications', { params }),
   markRead: (id) => api.patch(`/notifications/${id}/read`),
@@ -149,7 +139,6 @@ export const notificationService = {
   remove: (id) => api.delete(`/notifications/${id}`),
 }
 
-// ── Reports ──────────────────────────────────────────────────────────────
 export const reportService = {
   getRenewals: (days) => api.get('/reports/renewals', { params: { days } }),
   getRevenue: (months) => api.get('/reports/revenue', { params: { months } }),
@@ -157,14 +146,12 @@ export const reportService = {
   getClientReport: (id) => api.get(`/reports/client/${id}`),
 }
 
-// ── Uptime ───────────────────────────────────────────────────────────────
 export const uptimeService = {
   getLiveStatus: () => api.get('/uptime/status'),
   getSummary: () => api.get('/uptime/summary'),
   getLogs: (id) => api.get(`/uptime/logs/${id}`),
 }
 
-// ── Users ────────────────────────────────────────────────────────────────
 export const userService = {
   getAll: () => api.get('/users'),
   add: (d) => api.post('/users', d),
@@ -175,7 +162,6 @@ export const userService = {
   updateProfile: (d) => api.put('/users/profile', d),
 }
 
-// ── Super Admin ──────────────────────────────────────────────────────────
 export const superAdminService = {
   getStats: () => api.get('/super-admin/stats'),
   getTenants: (params) => api.get('/super-admin/tenants', { params }),
@@ -189,19 +175,17 @@ export const superAdminService = {
   getPlans: () => api.get('/super-admin/plans'),
   createPlan: (d) => api.post('/super-admin/plans', d),
   updatePlan: (id, d) => api.put(`/super-admin/plans/${id}`, d),
-
+  deletePlan: (id) => api.delete(`/super-admin/plans/${id}`),
   getPendingTenants: () => api.get('/super-admin/pending-tenants'),
   approveTenant: (id) => api.post(`/super-admin/tenants/${id}/approve`),
   rejectTenant: (id, reason) => api.post(`/super-admin/tenants/${id}/reject`, { reason }),
 }
 
-// ── Invite (Client portal invite flow) ───────────────────────────────────
 export const inviteService = {
   verify: (token) => api.get(`/invite/verify/${token}`),
   accept: (token, password) => api.post(`/invite/accept/${token}`, { password }),
 }
 
-// ── OTP (Registration email verification) ────────────────────────────────
 export const otpService = {
   send: (email) => api.post('/otp/send', { email }),
   verify: (email, code) => api.post('/otp/verify', { email, code }),

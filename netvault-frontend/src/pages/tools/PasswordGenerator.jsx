@@ -1,8 +1,3 @@
-// src/pages/tools/PasswordGenerator.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Implements §10.2 "Password Generator" — purely client-side. No network.
-// Crypto-random generation using Web Crypto API.
-// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, PageHeader } from '../../components/ui/index'

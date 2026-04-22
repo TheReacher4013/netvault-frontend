@@ -22,17 +22,30 @@ export default function TenantDetail() {
     const [showPlanModal, setShowPlanModal] = useState(false)
     const [selectedPlanId, setSelectedPlanId] = useState('')
     const [extendDays, setExtendDays] = useState('')
+    const [activeTab, setActiveTab] = useState('overview')
 
-    // Tenant details
     const { data, isLoading } = useQuery({
         queryKey: ['sa-tenant', id],
         queryFn: () => superAdminService.getTenant(id),
     })
 
-    // All available plans (for selection)
     const { data: plansData } = useQuery({
         queryKey: ['sa-plans'],
         queryFn: () => api.get('/plans'),
+    })
+
+    // Fetch clients for this tenant
+    const { data: clientsData } = useQuery({
+        queryKey: ['sa-tenant-clients', id],
+        queryFn: () => superAdminService.getAllClients({ tenantId: id, limit: 100 }),
+        enabled: activeTab === 'clients',
+    })
+
+    // Fetch domains for this tenant
+    const { data: domainsData } = useQuery({
+        queryKey: ['sa-tenant-domains', id],
+        queryFn: () => superAdminService.getAllDomains({ tenantId: id, limit: 100 }),
+        enabled: activeTab === 'domains',
     })
 
     const changePlanMut = useMutation({
@@ -53,6 +66,8 @@ export default function TenantDetail() {
     const users = data?.data?.data?.users || []
     const counts = data?.data?.data?.counts || {}
     const plans = plansData?.data?.data?.plans || []
+    const clients = clientsData?.data?.data?.clients || clientsData?.data?.data?.docs || []
+    const domains = domainsData?.data?.data?.domains || domainsData?.data?.data?.docs || []
 
     if (!tenant) return <div className="text-center py-20" style={{ color: theme.muted }}>Tenant not found</div>
 
@@ -70,6 +85,13 @@ export default function TenantDetail() {
             ...(extendDays && +extendDays > 0 ? { extendTrialDays: +extendDays } : {}),
         })
     }
+
+    const TABS = [
+        { key: 'overview', label: 'Overview' },
+        { key: 'users', label: `Users (${users.length})` },
+        { key: 'clients', label: `Clients (${counts.clients ?? '—'})` },
+        { key: 'domains', label: `Domains (${counts.domains ?? '—'})` },
+    ]
 
     return (
         <div className="space-y-5 max-w-5xl">
@@ -169,47 +191,164 @@ export default function TenantDetail() {
                 </Card>
             </div>
 
-            {/* Users table */}
-            <Card>
-                <CardHeader title={`Users (${users.length})`} />
-                {users.length === 0 ? (
-                    <div className="p-8 text-center text-sm" style={{ color: theme.muted }}>No users</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                                    {['Name', 'Email', 'Role', 'Status', 'Last login'].map(h => (
-                                        <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase"
-                                            style={{ color: theme.muted }}>{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map(u => (
-                                    <tr key={u._id} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                                        <td className="px-4 py-3 text-xs font-semibold" style={{ color: theme.text }}>{u.name}</td>
-                                        <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{u.email}</td>
-                                        <td className="px-4 py-3">
-                                            <span className="text-[10px] font-mono px-2 py-0.5 rounded capitalize"
-                                                style={{ background: `${theme.accent}12`, color: theme.accent }}>{u.role}</span>
-                                        </td>
-                                        <td className="px-4 py-3 text-[10px] font-mono"
-                                            style={{ color: u.isActive ? '#10B981' : '#EF4444' }}>
-                                            {u.isActive ? 'ACTIVE' : 'INACTIVE'}
-                                        </td>
-                                        <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
-                                            {u.lastLogin ? format(new Date(u.lastLogin), 'dd MMM yy HH:mm') : '—'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </Card>
+            {/* Tabs */}
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
+                {TABS.map(tab => (
+                    <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                        className="flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all"
+                        style={{
+                            background: activeTab === tab.key ? theme.surface : 'transparent',
+                            color: activeTab === tab.key ? theme.accent : theme.muted,
+                            border: activeTab === tab.key ? `1px solid ${theme.border}` : '1px solid transparent',
+                        }}>
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
 
-            {/*  NEW: Change plan modal */}
+            {/* Tab: Overview/Users */}
+            {activeTab === 'overview' && (
+                <Card>
+                    <CardHeader title="Company Info" />
+                    <div className="p-5 grid sm:grid-cols-2 gap-4 text-sm">
+                        {[
+                            ['Organization', tenant.orgName],
+                            ['Website', tenant.website || '—'],
+                            ['Phone', tenant.phone || '—'],
+                            ['Address', tenant.address || '—'],
+                            ['Admin', tenant.adminId?.name || '—'],
+                            ['Admin Email', tenant.adminId?.email || '—'],
+                        ].map(([k, v]) => (
+                            <div key={k}>
+                                <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>{k}</p>
+                                <p style={{ color: theme.text }}>{v}</p>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            )}
+
+            {activeTab === 'users' && (
+                <Card>
+                    <CardHeader title={`Users (${users.length})`} />
+                    {users.length === 0 ? (
+                        <div className="p-8 text-center text-sm" style={{ color: theme.muted }}>No users</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                        {['Name', 'Email', 'Role', 'Status', 'Last login'].map(h => (
+                                            <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase"
+                                                style={{ color: theme.muted }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(u => (
+                                        <tr key={u._id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                            <td className="px-4 py-3 text-xs font-semibold" style={{ color: theme.text }}>{u.name}</td>
+                                            <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{u.email}</td>
+                                            <td className="px-4 py-3">
+                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded capitalize"
+                                                    style={{ background: `${theme.accent}12`, color: theme.accent }}>{u.role}</span>
+                                            </td>
+                                            <td className="px-4 py-3 text-[10px] font-mono"
+                                                style={{ color: u.isActive ? '#10B981' : '#EF4444' }}>
+                                                {u.isActive ? 'ACTIVE' : 'INACTIVE'}
+                                            </td>
+                                            <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
+                                                {u.lastLogin ? format(new Date(u.lastLogin), 'dd MMM yy HH:mm') : '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </Card>
+            )}
+
+            {activeTab === 'clients' && (
+                <Card>
+                    <CardHeader title="Clients" />
+                    {clients.length === 0 ? (
+                        <div className="p-8 text-center text-sm" style={{ color: theme.muted }}>No clients found for this company</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                        {['Name', 'Email', 'Phone', 'Company', 'Portal Access'].map(h => (
+                                            <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase"
+                                                style={{ color: theme.muted }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {clients.map(c => (
+                                        <tr key={c._id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                            <td className="px-4 py-3 text-xs font-semibold" style={{ color: theme.text }}>{c.name}</td>
+                                            <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{c.email || '—'}</td>
+                                            <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{c.phone || '—'}</td>
+                                            <td className="px-4 py-3 text-xs" style={{ color: theme.muted }}>{c.company || '—'}</td>
+                                            <td className="px-4 py-3 text-[10px] font-mono"
+                                                style={{ color: c.portalAccess ? '#10B981' : theme.muted }}>
+                                                {c.portalAccess ? 'YES' : 'NO'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </Card>
+            )}
+
+            {activeTab === 'domains' && (
+                <Card>
+                    <CardHeader title="Domains" />
+                    {domains.length === 0 ? (
+                        <div className="p-8 text-center text-sm" style={{ color: theme.muted }}>No domains found for this company</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                        {['Domain', 'Registrar', 'Expiry', 'Status', 'Client'].map(h => (
+                                            <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase"
+                                                style={{ color: theme.muted }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {domains.map(d => (
+                                        <tr key={d._id} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                                            <td className="px-4 py-3 text-xs font-mono font-semibold" style={{ color: theme.text }}>{d.name || d.domain}</td>
+                                            <td className="px-4 py-3 text-xs" style={{ color: theme.muted }}>{d.registrar || '—'}</td>
+                                            <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
+                                                {d.expiryDate ? format(new Date(d.expiryDate), 'dd MMM yyyy') : '—'}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className="text-[10px] font-mono px-2 py-0.5 rounded capitalize"
+                                                    style={{
+                                                        background: d.status === 'active' ? '#10B98115' : '#EF444415',
+                                                        color: d.status === 'active' ? '#10B981' : '#EF4444'
+                                                    }}>{d.status || 'unknown'}</span>
+                                            </td>
+                                            <td className="px-4 py-3 text-xs" style={{ color: theme.muted }}>
+                                                {d.clientId?.name || d.client?.name || '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </Card>
+            )}
+
+            {/* Change plan modal */}
             <Modal open={showPlanModal} onClose={() => setShowPlanModal(false)}
                 title="Change Subscription Plan" size="lg">
                 <div className="space-y-3">

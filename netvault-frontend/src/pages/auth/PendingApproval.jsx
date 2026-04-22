@@ -109,7 +109,7 @@ export default function PendingApproval() {
                 <div className="p-4 rounded-xl mb-5 space-y-2 text-sm"
                     style={{ background: `${theme.accent}06`, border: `1px solid ${theme.border}` }}>
                     <div className="flex justify-between">
-                        <span style={{ color: theme.muted }}>Organization</span>
+                        <span style={{ color: theme.muted }}>Organisation</span>
                         <span className="font-semibold" style={{ color: theme.text }}>{status?.orgName || user?.tenantId?.orgName}</span>
                     </div>
                     <div className="flex justify-between">

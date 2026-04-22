@@ -17,6 +17,7 @@ export default function Register() {
   const [form, setForm] = useState({
     orgName: '', name: '', email: '', password: '', phone: '',
   })
+  const [errors, setErrors] = useState({})
   const [showPass, setShowPass] = useState(false)
 
   // OTP state
@@ -49,21 +50,87 @@ export default function Register() {
     const t = setInterval(() => setResendIn(s => s - 1), 1000)
     return () => clearInterval(t)
   }, [resendIn])
+
   useEffect(() => {
     if (step === 2) {
       setTimeout(() => otpInputRef.current?.focus(), 100)
     }
   }, [step])
 
-  const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  // ── Field-level validation helpers ──────────────────────────────────
+  const validators = {
+    name: v => {
+      if (!v.trim()) return 'Name is required'
+      if (/\d/.test(v)) return 'Name cannot contain numbers'
+      if (!/^[a-zA-Z\s'.,-]+$/.test(v)) return 'Name can only contain letters'
+      return ''
+    },
+    orgName: v => {
+      if (!v.trim()) return 'Organisation name is required'
+      return ''
+    },
+    email: v => {
+      if (!v.trim()) return 'Email is required'
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address'
+      return ''
+    },
+    password: v => {
+      if (!v) return 'Password is required'
+      if (v.length < 6) return 'Password must be at least 6 characters'
+      return ''
+    },
+    phone: v => {
+      if (!v) return '' // optional
+      const digits = v.replace(/\D/g, '')
+      if (digits.length !== 10) return 'Phone number must be exactly 10 digits'
+      return ''
+    },
+  }
+
+  const handleChange = e => {
+    const { name, value } = e.target
+
+    // Name field — block number input entirely
+    if (name === 'name' && /\d/.test(value)) {
+      setErrors(prev => ({ ...prev, name: 'Name cannot contain numbers' }))
+      return
+    }
+
+    // Phone field — allow only digits, max 10
+    if (name === 'phone') {
+      const digits = value.replace(/\D/g, '').slice(0, 10)
+      setForm(f => ({ ...f, phone: digits }))
+      setErrors(prev => ({ ...prev, phone: validators.phone(digits) }))
+      return
+    }
+
+    setForm(f => ({ ...f, [name]: value }))
+
+    // Clear error on change, re-validate live
+    if (validators[name]) {
+      setErrors(prev => ({ ...prev, [name]: validators[name](value) }))
+    }
+  }
+
+  const validateStep1 = () => {
+    const fields = ['orgName', 'name', 'email', 'password']
+    const newErrors = {}
+    fields.forEach(f => {
+      const err = validators[f]?.(form[f])
+      if (err) newErrors[f] = err
+    })
+    // phone is optional but validate if filled
+    const phoneErr = validators.phone(form.phone)
+    if (phoneErr) newErrors.phone = phoneErr
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   // ── Step 1 → send OTP → Step 2 ────────
   const handleStep1Continue = async (e) => {
     e.preventDefault()
-    if (!form.orgName.trim()) return toast.error('Organisation name is required')
-    if (!form.name.trim()) return toast.error('Your name is required')
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error('Valid email required')
-    if (form.password.length < 6) return toast.error('Password must be at least 6 characters')
+    if (!validateStep1()) return
 
     setOtpSending(true)
     try {
@@ -123,7 +190,6 @@ export default function Register() {
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed'
       toast.error(msg)
-      // If OTP expired between steps, kick back to step 2
       if (/verify your email/i.test(msg)) setStep(2)
       setLoading(false)
     }
@@ -138,6 +204,14 @@ export default function Register() {
     { n: 3, label: 'Choose plan' },
   ]
 
+  // ── Inline error component ───────────────────────────────────────────
+  const FieldError = ({ name }) =>
+    errors[name] ? (
+      <p className="text-[10px] font-mono mt-1" style={{ color: '#C94040' }}>
+        {errors[name]}
+      </p>
+    ) : null
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: theme.bg }}>
       <div className="absolute inset-0 pointer-events-none"
@@ -146,7 +220,7 @@ export default function Register() {
       <div className="relative z-10 flex items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg"
-            style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}>N</div>
+            style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#12100C' }}>N</div>
           <span className="font-display font-bold text-lg">
             Net<span style={{ color: theme.accent }}>Vault</span>
           </span>
@@ -191,25 +265,56 @@ export default function Register() {
               </p>
 
               <form onSubmit={handleStep1Continue} className="space-y-3">
-                {[
-                  { name: 'orgName', label: 'Organisation name', placeholder: 'Acme Digital', type: 'text' },
-                  { name: 'name', label: 'Your name', placeholder: 'Rahul Kumar', type: 'text' },
-                  { name: 'email', label: 'Email', placeholder: 'you@agency.com', type: 'email' },
-                ].map(f => (
-                  <div key={f.name}>
-                    <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
-                      {f.label}
-                    </label>
-                    <input type={f.type} name={f.name} value={form[f.name]} onChange={handleChange}
-                      placeholder={f.placeholder} autoComplete={f.name === 'email' ? 'email' : 'off'}
-                      className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                      style={{
-                        background: `${theme.accent}08`, border: `1px solid ${theme.border}`,
-                        color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                      }} />
-                  </div>
-                ))}
 
+                {/* Organisation name */}
+                <div>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
+                    Organisation name
+                  </label>
+                  <input type="text" name="orgName" value={form.orgName} onChange={handleChange}
+                    placeholder="Acme Digital" autoComplete="off"
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                    style={{
+                      background: `${theme.accent}08`,
+                      border: `1px solid ${errors.orgName ? '#C94040' : theme.border}`,
+                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
+                    }} />
+                  <FieldError name="orgName" />
+                </div>
+
+                {/* Name — letters only */}
+                <div>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
+                    Your name
+                  </label>
+                  <input type="text" name="name" value={form.name} onChange={handleChange}
+                    placeholder="Rahul Kumar" autoComplete="off"
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                    style={{
+                      background: `${theme.accent}08`,
+                      border: `1px solid ${errors.name ? '#C94040' : theme.border}`,
+                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
+                    }} />
+                  <FieldError name="name" />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
+                    Email
+                  </label>
+                  <input type="email" name="email" value={form.email} onChange={handleChange}
+                    placeholder="you@agency.com" autoComplete="email"
+                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                    style={{
+                      background: `${theme.accent}08`,
+                      border: `1px solid ${errors.email ? '#C94040' : theme.border}`,
+                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
+                    }} />
+                  <FieldError name="email" />
+                </div>
+
+                {/* Password */}
                 <div>
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Password</label>
                   <div className="relative">
@@ -218,7 +323,8 @@ export default function Register() {
                       autoComplete="new-password"
                       className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm outline-none"
                       style={{
-                        background: `${theme.accent}08`, border: `1px solid ${theme.border}`,
+                        background: `${theme.accent}08`,
+                        border: `1px solid ${errors.password ? '#C94040' : theme.border}`,
                         color: theme.text, fontFamily: "'DM Sans',sans-serif"
                       }} />
                     <button type="button" onClick={() => setShowPass(v => !v)}
@@ -227,19 +333,28 @@ export default function Register() {
                       {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                   </div>
+                  <FieldError name="password" />
                 </div>
 
+                {/* Phone — digits only, max 10 */}
                 <div>
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
                     Phone <span className="font-normal opacity-60">(optional)</span>
                   </label>
                   <input type="tel" name="phone" value={form.phone} onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                     style={{
-                      background: `${theme.accent}08`, border: `1px solid ${theme.border}`,
+                      background: `${theme.accent}08`,
+                      border: `1px solid ${errors.phone ? '#C94040' : theme.border}`,
                       color: theme.text, fontFamily: "'DM Sans',sans-serif"
                     }} />
+                  <div className="flex items-center justify-between mt-1">
+                    <FieldError name="phone" />
+                    <span className="text-[10px] font-mono ml-auto" style={{ color: theme.muted }}>
+                      {form.phone.length}/10
+                    </span>
+                  </div>
                 </div>
 
                 <button type="submit" disabled={otpSending}

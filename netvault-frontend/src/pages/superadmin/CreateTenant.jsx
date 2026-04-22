@@ -7,7 +7,6 @@ import { superAdminService } from '../../services/api'
 import { Button, Card, Input, PageHeader } from '../../components/ui/index'
 import toast from 'react-hot-toast'
 
-
 function Section({ icon: Icon, title, children, theme }) {
     return (
         <Card className="p-6">
@@ -23,7 +22,6 @@ function Section({ icon: Icon, title, children, theme }) {
         </Card>
     )
 }
-
 
 function PlanCard({ plan, selected, onSelect, theme }) {
     return (
@@ -51,15 +49,15 @@ export default function CreateTenant() {
     const navigate = useNavigate()
 
     const [form, setForm] = useState({
-        orgName: '', website: '', address: '', phone: '', email: '',
-        adminName: '', adminEmail: '', adminPassword: '', adminPhone: '',
+        orgName: '',
+        adminName: '', adminEmail: '', adminPassword: '',
         planName: 'free',
     })
 
     const { data: plansData } = useQuery({
         queryKey: ['sa-plans'],
         queryFn: superAdminService.getPlans,
-        refetchOnWindowFocus: false,   // avoid mid-typing refetches
+        refetchOnWindowFocus: false,
     })
     const plans = plansData?.data?.data?.plans || []
 
@@ -73,6 +71,7 @@ export default function CreateTenant() {
             toast.error(err.response?.data?.message || 'Failed to create company')
         },
     })
+
     const handle = useCallback((e) => {
         const { name, value } = e.target
         setForm(f => ({ ...f, [name]: value }))
@@ -102,27 +101,15 @@ export default function CreateTenant() {
                 }
             />
 
-            {/* Section 1: Company Info */}
+            {/* Section 1: Company Info - Only Company Name */}
             <Section icon={Building2} title="Company Information" theme={theme}>
-                <div className="space-y-4">
-                    <Input
-                        label="Company / Agency Name *"
-                        name="orgName"
-                        value={form.orgName}
-                        onChange={handle}
-                        placeholder="e.g. Acme Digital Agency"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input label="Company Email" name="email" type="email"
-                            value={form.email} onChange={handle} placeholder="company@example.com" />
-                        <Input label="Company Phone" name="phone"
-                            value={form.phone} onChange={handle} placeholder="+91 9876543210" />
-                    </div>
-                    <Input label="Website" name="website"
-                        value={form.website} onChange={handle} placeholder="https://acme.com" />
-                    <Input label="Address" name="address"
-                        value={form.address} onChange={handle} placeholder="Mumbai, Maharashtra" />
-                </div>
+                <Input
+                    label="Company / Agency Name *"
+                    name="orgName"
+                    value={form.orgName}
+                    onChange={handle}
+                    placeholder="e.g. Acme Digital Agency"
+                />
             </Section>
 
             {/* Section 2: Admin Account */}
@@ -135,12 +122,8 @@ export default function CreateTenant() {
                         value={form.adminName} onChange={handle} placeholder="John Smith" />
                     <Input label="Admin Email *" name="adminEmail" type="email"
                         value={form.adminEmail} onChange={handle} placeholder="admin@acme.com" />
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input label="Password *" name="adminPassword" type="password"
-                            value={form.adminPassword} onChange={handle} placeholder="Min. 6 characters" />
-                        <Input label="Admin Phone" name="adminPhone"
-                            value={form.adminPhone} onChange={handle} placeholder="+91 9876543210" />
-                    </div>
+                    <Input label="Password *" name="adminPassword" type="password"
+                        value={form.adminPassword} onChange={handle} placeholder="Min. 6 characters" />
                 </div>
             </Section>
 
@@ -168,7 +151,6 @@ export default function CreateTenant() {
                 </div>
             </Section>
 
-            {/* Submit */}
             <div className="flex gap-3 pb-6">
                 <Button loading={createMut.isPending} onClick={submit}>
                     <Building2 size={14} /> Create Company

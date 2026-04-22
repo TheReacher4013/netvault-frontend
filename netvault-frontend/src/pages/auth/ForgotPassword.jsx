@@ -37,7 +37,7 @@ export default function ForgotPassword() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Email</label>
+                <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Email ID</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"

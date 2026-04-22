@@ -15,7 +15,7 @@ const THEMES = [
 
 export default function Login() {
   const { login, completeLoginWith2FA } = useAuth()
-  const { theme: modeTheme, mode } = useTheme() 
+  const { theme: modeTheme, mode } = useTheme()
   const navigate = useNavigate()
 
   const [themeKey, setThemeKey] = useState('admin')
@@ -77,7 +77,7 @@ export default function Login() {
     } finally { setLoading(false) }
   }
 
- 
+
   const loginBg = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80'
 
   return (
@@ -98,7 +98,7 @@ export default function Login() {
       <div className="hidden lg:flex flex-1 flex-col justify-between p-12 relative z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xl"
-            style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}>N</div>
+            style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#12100C' }}>N</div>
           <span className="font-display font-bold text-xl" style={{ color: theme.text }}>
             Net<span style={{ color: theme.accent }}>Vault</span>
           </span>
@@ -126,7 +126,7 @@ export default function Login() {
         <div className="w-full max-w-sm">
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-base"
-              style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}>N</div>
+              style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#12100C' }}>N</div>
             <span className="font-display font-bold text-lg" style={{ color: theme.text }}>
               Net<span style={{ color: theme.accent }}>Vault</span>
             </span>
@@ -167,7 +167,7 @@ export default function Login() {
               </>
             ) : (
               <>
-                <h2 className="font-display font-bold text-2xl mb-1" style={{ color: theme.text }}>Sign In</h2>
+                <h2 className="font-display font-bold text-2xl mb-1" style={{ color: theme.text }}>Log In</h2>
                 <p className="text-xs mb-6 font-mono" style={{ color: theme.muted }}>Enter your credentials to continue</p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -212,7 +212,7 @@ export default function Login() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Email</label>
+                    <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Email ID</label>
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
@@ -222,7 +222,7 @@ export default function Login() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-xs font-semibold" style={{ color: theme.muted }}>Password</label>
-                      <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: theme.accent }}>Forgot?</Link>
+                      <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: theme.accent }}>Forgot Password?</Link>
                     </div>
                     <div className="relative">
                       <input type={showPass ? 'text' : 'password'} value={password}
@@ -239,7 +239,7 @@ export default function Login() {
                   <button type="submit" disabled={loading}
                     className="w-full py-2.5 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
                     style={{ background: theme.accent, color: '#fff' }}>
-                    {loading ? 'Signing in…' : 'Sign In'}
+                    {loading ? 'logging in…' : 'Log In'}
                   </button>
                 </form>
 

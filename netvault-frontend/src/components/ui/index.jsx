@@ -1,4 +1,3 @@
-// ── Button ──────
 import clsx from 'clsx'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -34,11 +33,10 @@ export function StatCard({ label, value, trend, trendUp, icon: Icon, delay = 0, 
   return (
     <div
       onClick={onClick}
-      className="rounded-2xl p-5 relative overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl animate-fade-up"
+      className="rounded-2xl p-5 relative overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{
         background: `${theme.accent}08`,
         border: `1px solid ${theme.border}`,
-        animationDelay: `${delay}ms`,
       }}
     >
       <div className="absolute top-0 inset-x-0 h-px"
@@ -73,18 +71,18 @@ export function StatCard({ label, value, trend, trendUp, icon: Icon, delay = 0, 
 // ── StatusBadge ───────
 export function StatusBadge({ status }) {
   const map = {
-    active:   'badge-active',
+    active: 'badge-active',
     expiring: 'badge-expiring',
-    expired:  'badge-expired',
+    expired: 'badge-expired',
     transfer: 'badge-transfer',
-    paid:     'badge-paid',
-    pending:  'badge-pending',
-    overdue:  'badge-overdue',
-    up:       'badge-active',
-    down:     'badge-expired',
-    suspended:'badge-expired',
-    draft:    'badge-pending',
-    sent:     'badge-transfer',
+    paid: 'badge-paid',
+    pending: 'badge-pending',
+    overdue: 'badge-overdue',
+    up: 'badge-active',
+    down: 'badge-expired',
+    suspended: 'badge-expired',
+    draft: 'badge-pending',
+    sent: 'badge-transfer',
   }
   return <span className={map[status] || 'badge-pending'}>{status?.toUpperCase()}</span>
 }
@@ -219,7 +217,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className={clsx('relative w-full rounded-2xl shadow-2xl animate-fade-up', widths[size])}
+        className={clsx('relative w-full rounded-2xl shadow-2xl', widths[size])}
         style={{ background: theme.surface, border: `1px solid ${theme.border}` }}
         onClick={e => e.stopPropagation()}
       >

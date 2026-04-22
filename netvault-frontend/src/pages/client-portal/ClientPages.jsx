@@ -1,13 +1,14 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
 import { clientPortalService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Card, CardHeader, StatusBadge, Loader, EmptyState, PageHeader, Button } from '../../components/ui/index'
-import { Globe, Server, FileText, Bell, Download, ArrowLeft } from 'lucide-react'
+import { Globe, Server, FileText, Bell, Download, ArrowLeft, CheckCircle2, XCircle, AlertTriangle, ExternalLink, RefreshCw, Info } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
-// ── Domains ─────────────────
+// ── My Domains ────────────────────────────────────────────────────────────────
 export function ClientDomains() {
   const { theme } = useAuth()
   const { data, isLoading } = useQuery({
@@ -23,46 +24,99 @@ export function ClientDomains() {
       {domains.length === 0 ? (
         <Card><EmptyState icon={Globe} title="No domains" description="Your agency has not linked any domains to you yet." /></Card>
       ) : (
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  {['Domain', 'Registrar', 'Expiry', 'Days Left', 'Status'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider" style={{ color: theme.muted }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {domains.map(d => {
-                  const dl = Math.ceil((new Date(d.expiryDate) - new Date()) / 86400000)
-                  return (
-                    <tr key={d._id} className="hover:bg-white/[0.02]" style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      <td className="px-4 py-3 text-xs font-mono font-semibold" style={{ color: theme.text }}>{d.name}</td>
-                      <td className="px-4 py-3 text-xs" style={{ color: theme.muted }}>{d.registrar || '—'}</td>
-                      <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
-                        {format(new Date(d.expiryDate), 'dd MMM yyyy')}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs font-mono font-bold"
-                          style={{ color: dl < 0 ? '#C94040' : dl <= 7 ? '#C94040' : dl <= 30 ? '#F0A045' : '#62B849' }}>
-                          {dl < 0 ? `${Math.abs(dl)}d ago` : `${dl}d`}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="space-y-4">
+          {domains.map(d => {
+            const dl = Math.ceil((new Date(d.expiryDate) - new Date()) / 86400000)
+            const isDown = d.monitoring?.currentState === 'down'
+            const isExpired = d.status === 'expired'
+
+            return (
+              <Card key={d._id} className="p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  {/* Domain info */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${theme.accent}15` }}>
+                      <Globe size={16} style={{ color: theme.accent }} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold font-mono text-sm" style={{ color: theme.text }}>{d.name}</p>
+                        <StatusBadge status={d.status} />
+                        {/* Live status dot */}
+                        {d.monitoring?.currentState === 'up' && (
+                          <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                            style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981' }}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                            Online
+                          </span>
+                        )}
+                        {d.monitoring?.currentState === 'down' && (
+                          <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-full"
+                            style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444' }}>
+                            <XCircle size={10} /> Down
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] mt-0.5" style={{ color: theme.muted }}>
+                        {d.registrar || 'Unknown registrar'} · Expires {format(new Date(d.expiryDate), 'dd MMM yyyy')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Days left + open site */}
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-[10px] font-mono uppercase" style={{ color: theme.muted }}>Days left</p>
+                      <p className="font-mono font-bold text-sm" style={{
+                        color: dl < 0 ? '#C94040' : dl <= 7 ? '#C94040' : dl <= 30 ? '#F0A045' : '#62B849'
+                      }}>
+                        {dl < 0 ? `Expired ${Math.abs(dl)}d ago` : `${dl}d`}
+                      </p>
+                    </div>
+                    <button onClick={() => window.open(`https://${d.name}`, '_blank')}
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ background: `${theme.accent}10`, color: theme.accent }}
+                      title="Visit website">
+                      <ExternalLink size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Down / expired warning with explanation */}
+                {(isDown || isExpired) && (
+                  <div className="mt-4 p-3 rounded-xl text-xs space-y-1.5"
+                    style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.20)' }}>
+                    <p className="font-semibold flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+                      <AlertTriangle size={12} />
+                      {isExpired ? 'Domain Expired' : 'Domain Appears Offline'}
+                    </p>
+                    <p style={{ color: theme.muted }}>
+                      {isExpired
+                        ? 'This domain has expired and may no longer be active. Contact your agency to renew it immediately.'
+                        : 'Your website is currently unreachable. This could be due to a server issue, DNS misconfiguration, or the domain expiring soon. Contact your agency for assistance.'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Auto renewal status */}
+                {d.autoRenewal && (
+                  <div className="mt-3 flex items-center gap-1.5 text-[11px]"
+                    style={{ color: '#10B981' }}>
+                    <RefreshCw size={11} />
+                    Auto-renewal is enabled — your domain renews automatically
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </div>
       )}
     </div>
   )
 }
 
-// ── Hosting ───────────
+// ── My Hosting ────────────────────────────────────────────────────────────────
 export function ClientHosting() {
   const { theme } = useAuth()
   const { data, isLoading } = useQuery({
@@ -75,12 +129,29 @@ export function ClientHosting() {
   return (
     <div className="space-y-5">
       <PageHeader title="My Hosting" subtitle={`${hosting.length} hosting plans`} />
+
+      {/* Usage guide */}
+      <Card className="p-5">
+        <div className="flex items-start gap-3">
+          <Info size={16} style={{ color: theme.accent }} className="flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold mb-1" style={{ color: theme.text }}>How Your Hosting Works</p>
+            <p className="text-xs leading-relaxed" style={{ color: theme.muted }}>
+              Your hosting plan is the server where your website files live. Your domain name points to this server
+              via DNS, making your website accessible worldwide. If your hosting expires or goes down, your website
+              will become unavailable. Contact your agency if you notice any issues.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {hosting.length === 0 ? (
         <Card><EmptyState icon={Server} title="No hosting" description="Your agency has not linked any hosting plans to you yet." /></Card>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {hosting.map(h => {
             const dl = Math.ceil((new Date(h.expiryDate) - new Date()) / 86400000)
+            const isDown = h.uptime?.currentStatus === 'down'
             return (
               <Card key={h._id} className="p-5">
                 <div className="flex items-start gap-3 mb-4">
@@ -99,23 +170,38 @@ export function ClientHosting() {
                     <StatusBadge status={h.status} />
                   </div>
                   <div className="flex justify-between">
+                    <span style={{ color: theme.muted }}>Server</span>
+                    <span className="font-mono" style={{ color: isDown ? '#EF4444' : '#10B981' }}>
+                      {h.uptime?.currentStatus === 'up' ? '● Online' : h.uptime?.currentStatus === 'down' ? '● Offline' : '● Unknown'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
                     <span style={{ color: theme.muted }}>Expiry</span>
                     <span className="font-mono" style={{ color: theme.text }}>{format(new Date(h.expiryDate), 'dd MMM yyyy')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span style={{ color: theme.muted }}>Days left</span>
-                    <span className="font-mono font-bold" style={{ color: dl <= 30 ? '#F0A045' : theme.accent }}>{dl}d</span>
+                    <span className="font-mono font-bold"
+                      style={{ color: dl < 0 ? '#C94040' : dl <= 30 ? '#F0A045' : theme.accent }}>
+                      {dl < 0 ? `Expired ${Math.abs(dl)}d ago` : `${dl}d`}
+                    </span>
                   </div>
-                  {h.uptime && (
+                  {h.uptime?.uptimePercent != null && (
                     <div className="flex justify-between">
                       <span style={{ color: theme.muted }}>Uptime</span>
                       <span className="font-mono font-bold"
                         style={{ color: h.uptime.uptimePercent >= 99 ? '#62B849' : '#F0A045' }}>
-                        {h.uptime.uptimePercent ?? '—'}%
+                        {h.uptime.uptimePercent}%
                       </span>
                     </div>
                   )}
                 </div>
+                {isDown && (
+                  <div className="mt-3 p-2 rounded-lg text-[11px]"
+                    style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444' }}>
+                    ⚠ Server appears offline. Contact your agency.
+                  </div>
+                )}
               </Card>
             )
           })}
@@ -125,53 +211,61 @@ export function ClientHosting() {
   )
 }
 
-// ── Invoices list ───────────
+// ── Invoices ──────────────────────────────────────────────────────────────────
 export function ClientInvoicesList() {
   const { theme } = useAuth()
   const navigate = useNavigate()
+  const [status, setStatus] = useState('')
   const { data, isLoading } = useQuery({
-    queryKey: ['client-invoices'],
-    queryFn: () => clientPortalService.invoices(),
+    queryKey: ['client-invoices', status],
+    queryFn: () => clientPortalService.invoices({ status }),
   })
   if (isLoading) return <Loader text="Loading invoices..." />
   const invoices = data?.data?.data?.invoices || []
 
-  const handleDownload = async (id, no) => {
-    try {
-      const res = await clientPortalService.downloadInvoice(id)
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
-      const a = document.createElement('a'); a.href = url; a.download = `${no}.pdf`; a.click()
-      URL.revokeObjectURL(url)
-    } catch { toast.error('Failed to download PDF') }
-  }
-
   return (
     <div className="space-y-5">
-      <PageHeader title="Invoices" subtitle={`${invoices.length} total`} />
+      <PageHeader title="My Invoices" subtitle={`${invoices.length} invoices`} />
+      <Card className="p-4">
+        <select value={status} onChange={e => setStatus(e.target.value)}
+          className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer"
+          style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }}>
+          <option value="">All Status</option>
+          {['draft', 'sent', 'pending', 'paid', 'overdue'].map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </Card>
       {invoices.length === 0 ? (
-        <Card><EmptyState icon={FileText} title="No invoices yet" /></Card>
+        <Card><EmptyState icon={FileText} title="No invoices" description="No invoices have been issued to you yet." /></Card>
       ) : (
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  {['Invoice #', 'Amount', 'Status', 'Due', 'Action'].map(h => (
+                  {['Invoice', 'Amount', 'Due Date', 'Status', ''].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider" style={{ color: theme.muted }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {invoices.map(inv => (
-                  <tr key={inv._id} className="hover:bg-white/[0.02] cursor-pointer" style={{ borderBottom: `1px solid ${theme.border}` }}
+                  <tr key={inv._id} className="hover:bg-white/[0.02] cursor-pointer"
+                    style={{ borderBottom: `1px solid ${theme.border}` }}
                     onClick={() => navigate(`/client-portal/invoices/${inv._id}`)}>
-                    <td className="px-4 py-3 text-xs font-mono font-bold" style={{ color: theme.accent }}>{inv.invoiceNo}</td>
-                    <td className="px-4 py-3 text-sm font-mono font-bold" style={{ color: theme.text }}>₹{inv.total.toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 text-xs font-mono font-semibold" style={{ color: theme.text }}>{inv.invoiceNo}</td>
+                    <td className="px-4 py-3 text-xs font-semibold" style={{ color: theme.text }}>₹{inv.total?.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
+                      {inv.dueDate ? format(new Date(inv.dueDate), 'dd MMM yyyy') : '—'}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={inv.status} /></td>
-                    <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{format(new Date(inv.dueDate), 'dd MMM yyyy')}</td>
                     <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => handleDownload(inv._id, inv.invoiceNo)}
-                        className="p-1.5 rounded-lg hover:bg-white/10" style={{ color: theme.accent }}>
+                      <button onClick={async () => {
+                        try {
+                          const res = await clientPortalService.downloadInvoice(inv._id)
+                          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+                          Object.assign(document.createElement('a'), { href: url, download: `${inv.invoiceNo}.pdf` }).click()
+                        } catch { toast.error('Download failed') }
+                      }} className="p-1.5 rounded-lg transition-colors hover:bg-white/10" style={{ color: theme.accent }}>
                         <Download size={13} />
                       </button>
                     </td>
@@ -186,150 +280,100 @@ export function ClientInvoicesList() {
   )
 }
 
-// ── Invoice detail ─────────
+// ── Invoice Detail ────────────────────────────────────────────────────────────
 export function ClientInvoiceDetail() {
   const { id } = useParams()
-  const { theme } = useAuth()
   const navigate = useNavigate()
-  const { data, isLoading } = useQuery({
-    queryKey: ['client-invoice', id],
-    queryFn: () => clientPortalService.invoice(id),
-  })
+  const { theme } = useAuth()
+  const { data, isLoading } = useQuery({ queryKey: ['client-invoice', id], queryFn: () => clientPortalService.invoice(id) })
   if (isLoading) return <Loader text="Loading invoice..." />
   const inv = data?.data?.data?.invoice
-  if (!inv) return <div className="text-center py-20" style={{ color: theme.muted }}>Invoice not found</div>
-
-  const handleDownload = async () => {
-    try {
-      const res = await clientPortalService.downloadInvoice(id)
-      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
-      const a = document.createElement('a'); a.href = url; a.download = `${inv.invoiceNo}.pdf`; a.click()
-      URL.revokeObjectURL(url)
-    } catch { toast.error('Failed to download PDF') }
-  }
+  if (!inv) return <div style={{ color: theme.muted }} className="text-center py-20">Invoice not found</div>
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
-      <PageHeader title={inv.invoiceNo} subtitle={`Created ${format(new Date(inv.createdAt), 'dd MMM yyyy')}`}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/client-portal/invoices')}><ArrowLeft size={13} />Back</Button>
-            <Button size="sm" onClick={handleDownload}><Download size={13} />PDF</Button>
+    <div className="space-y-5 max-w-2xl">
+      <PageHeader title={inv.invoiceNo} subtitle={`₹${inv.total?.toLocaleString()}`}
+        actions={<Button variant="ghost" size="sm" onClick={() => navigate('/client-portal/invoices')}><ArrowLeft size={13} />Back</Button>} />
+      <Card className="p-6 space-y-4">
+        {[
+          ['Invoice #', inv.invoiceNo],
+          ['Status', <StatusBadge status={inv.status} />],
+          ['Amount', `₹${inv.total?.toLocaleString()}`],
+          ['Due Date', inv.dueDate ? format(new Date(inv.dueDate), 'dd MMM yyyy') : '—'],
+          ['Notes', inv.notes || '—'],
+        ].map(([k, v]) => (
+          <div key={k} className="flex justify-between items-center py-2" style={{ borderBottom: `1px solid ${theme.border}` }}>
+            <span className="text-xs" style={{ color: theme.muted }}>{k}</span>
+            <span className="text-xs font-semibold" style={{ color: theme.text }}>{v}</span>
           </div>
-        } />
-      <Card>
-        <CardHeader title="Invoice Details" />
-        <div className="p-5">
-          <table className="w-full mb-5">
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                {['Description', 'Qty', 'Unit Price', 'Total'].map(h => (
-                  <th key={h} className="pb-2 text-left text-[10px] font-mono uppercase tracking-wider" style={{ color: theme.muted }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {inv.items?.map((item, i) => (
-                <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  <td className="py-2.5 text-xs" style={{ color: theme.text }}>{item.description}</td>
-                  <td className="py-2.5 text-xs font-mono" style={{ color: theme.muted }}>{item.quantity}</td>
-                  <td className="py-2.5 text-xs font-mono" style={{ color: theme.muted }}>₹{item.unitPrice?.toLocaleString('en-IN')}</td>
-                  <td className="py-2.5 text-sm font-mono font-bold" style={{ color: theme.accent }}>₹{item.total?.toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="space-y-1.5 text-xs ml-auto max-w-xs">
-            {[
-              ['Subtotal', `₹${inv.subtotal?.toLocaleString('en-IN')}`],
-              [`Tax (${inv.taxRate}%)`, `₹${inv.taxAmount?.toLocaleString('en-IN')}`],
-              ['Discount', `-₹${inv.discount?.toLocaleString('en-IN')}`],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between">
-                <span style={{ color: theme.muted }}>{k}</span>
-                <span className="font-mono" style={{ color: theme.text }}>{v}</span>
-              </div>
-            ))}
-            <div className="flex justify-between pt-2 text-base font-bold" style={{ borderTop: `1px solid ${theme.border}` }}>
-              <span style={{ color: theme.text }}>Total</span>
-              <span className="font-mono" style={{ color: theme.accent }}>₹{inv.total?.toLocaleString('en-IN')}</span>
-            </div>
-            <div className="flex justify-between pt-1">
-              <span style={{ color: theme.muted }}>Status</span>
-              <StatusBadge status={inv.status} />
-            </div>
-          </div>
-        </div>
+        ))}
+        <Button onClick={async () => {
+          try {
+            const res = await clientPortalService.downloadInvoice(id)
+            const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+            Object.assign(document.createElement('a'), { href: url, download: `${inv.invoiceNo}.pdf` }).click()
+          } catch { toast.error('Download failed') }
+        }}>
+          <Download size={14} /> Download PDF
+        </Button>
       </Card>
     </div>
   )
 }
 
-// ── Alerts ──────────────────────────────────────────────────────────────
+// ── Alerts ────────────────────────────────────────────────────────────────────
 export function ClientAlerts() {
   const { theme } = useAuth()
-  const { data, isLoading } = useQuery({
-    queryKey: ['client-alerts'],
-    queryFn: () => clientPortalService.alerts(),
-    refetchInterval: 60000,
-  })
+  const { data, isLoading } = useQuery({ queryKey: ['client-alerts'], queryFn: () => clientPortalService.alerts() })
   if (isLoading) return <Loader text="Loading alerts..." />
-  const notifs = data?.data?.data?.notifications || []
-
-  const SEVERITY = { danger: '#C94040', warning: '#F0A045', success: '#62B849', info: theme.accent }
+  const alerts = data?.data?.data?.alerts || []
+  const severityColor = { danger: '#EF4444', warning: '#F0A045', info: theme.accent }
 
   return (
-    <div className="space-y-5 max-w-3xl">
-      <PageHeader title="Alerts" subtitle={`${notifs.length} shown`} />
-      <Card>
-        {notifs.length === 0 ? (
-          <EmptyState icon={Bell} title="No alerts" description="All caught up." />
-        ) : (
-          <div className="divide-y" style={{ borderColor: theme.border }}>
-            {notifs.map(n => (
-              <div key={n._id} className="flex items-start gap-4 px-5 py-4" style={{ opacity: n.read ? 0.6 : 1 }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${SEVERITY[n.severity] || theme.accent}12` }}>
-                  <Bell size={14} style={{ color: SEVERITY[n.severity] || theme.accent }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: theme.text }}>{n.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: theme.muted }}>{n.message}</p>
-                  <p className="text-[10px] mt-1.5 font-mono" style={{ color: theme.muted }}>
-                    {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+    <div className="space-y-5">
+      <PageHeader title="My Alerts" subtitle={`${alerts.length} notifications`} />
+      {alerts.length === 0 ? (
+        <Card><EmptyState icon={Bell} title="No alerts" description="You have no active alerts." /></Card>
+      ) : (
+        <div className="space-y-3">
+          {alerts.map(a => (
+            <Card key={a._id} className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
+                  style={{ background: severityColor[a.severity] || theme.muted }} />
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: theme.text }}>{a.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: theme.muted }}>{a.message}</p>
+                  <p className="text-[10px] mt-1 font-mono" style={{ color: theme.muted }}>
+                    {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </Card>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-// ── Minimal Profile page ────────────────────────────────────────────────
+// ── Profile ───────────────────────────────────────────────────────────────────
 export function ClientProfile() {
-  const { user, theme } = useAuth()
+  const { theme, user } = useAuth()
   return (
-    <div className="max-w-lg space-y-5">
-      <PageHeader title="Profile" subtitle="Your account details" />
-      <Card className="p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
-            style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
-            {user?.name?.charAt(0).toUpperCase()}
+    <div className="space-y-5 max-w-lg">
+      <PageHeader title="My Profile" subtitle="Your account information" />
+      <Card className="p-6 space-y-4">
+        {[
+          ['Name', user?.name],
+          ['Email', user?.email],
+          ['Role', user?.role],
+        ].map(([k, v]) => (
+          <div key={k} className="flex justify-between py-2" style={{ borderBottom: `1px solid ${theme.border}` }}>
+            <span className="text-xs" style={{ color: theme.muted }}>{k}</span>
+            <span className="text-xs font-semibold font-mono" style={{ color: theme.text }}>{v || '—'}</span>
           </div>
-          <div>
-            <p className="font-semibold text-base" style={{ color: theme.text }}>{user?.name}</p>
-            <p className="text-xs font-mono" style={{ color: theme.muted }}>{user?.email}</p>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded mt-1 inline-block capitalize"
-              style={{ background: `${theme.accent}15`, color: theme.accent }}>{user?.role}</span>
-          </div>
-        </div>
-        <p className="text-xs" style={{ color: theme.muted }}>
-          Need to update your details? Please contact your agency.
-        </p>
+        ))}
       </Card>
     </div>
   )
