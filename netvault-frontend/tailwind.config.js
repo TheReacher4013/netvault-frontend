@@ -5,9 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Keep existing fonts
-        display: ['Syne', 'sans-serif'],
-        body: ['DM Sans', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
@@ -15,7 +14,6 @@ export default {
       },
 
       colors: {
-        // ── CSS-var bridge — use via Tailwind ──────────────────────
         nv: {
           bg: 'var(--nv-bg)',
           bg2: 'var(--nv-bg2)',
@@ -27,30 +25,29 @@ export default {
           muted: 'var(--nv-muted)',
         },
 
-        // ── VisionCraft dark palette (static, for JIT) ─────────────
-        // Base dark
-        'vc-bg': '#12100C',
-        'vc-bg2': '#1A1710',
-        'vc-surface': '#221F14',
+        // DomainVault dark palette (static, for JIT)
+        'dv-bg': '#0A0B0F',
+        'dv-bg2': '#0F1117',
+        'dv-surface': '#161A24',
 
-        // Gold accents (per role)
-        'gold': '#C9A84C',   // superAdmin
-        'gold-2': '#E2C06A',
-        'amber': '#D4872A',   // admin
-        'amber-2': '#F0A84A',
-        'bronze': '#A07840',   // staff
-        'bronze-2': '#C09860',
-        'ochre': '#B89A30',   // client
-        'ochre-2': '#D4B84A',
+        // Accent palette
+        'indigo': '#6366F1',
+        'indigo-2': '#818CF8',
+        'violet': '#8B5CF6',
+        'violet-2': '#A78BFA',
+        'blue': '#3B82F6',
+        'blue-2': '#60A5FA',
+        'cyan': '#06B6D4',
+        'cyan-2': '#22D3EE',
 
-        // Warm text
-        'vc-text': '#F0EAD6',
-        'vc-muted': '#8A7E62',
+        // Text
+        'dv-text': '#E8EDFF',
+        'dv-muted': '#6B7385',
 
-        // ── Light palette ──────────────────────────────────────────
-        'cream': '#FAF7F0',
+        // Light palette
+        'dv-light': '#F4F6FF',
 
-        // ── Semantic (CSS-var driven) ──────────────────────────────
+        // Semantic
         success: 'var(--nv-success)',
         warning: 'var(--nv-warning)',
         danger: 'var(--nv-danger)',
@@ -58,11 +55,10 @@ export default {
       },
 
       backgroundImage: {
-        // Gold gradient — used on hero headlines, CTA buttons
-        'gold-gradient': 'linear-gradient(135deg, #C9A84C, #E2C06A)',
-        'amber-gradient': 'linear-gradient(135deg, #D4872A, #F0A84A)',
-        'bronze-gradient': 'linear-gradient(135deg, #A07840, #C09860)',
-        'ochre-gradient': 'linear-gradient(135deg, #B89A30, #D4B84A)',
+        'indigo-gradient': 'linear-gradient(135deg, #6366F1, #818CF8)',
+        'violet-gradient': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+        'blue-gradient': 'linear-gradient(135deg, #3B82F6, #60A5FA)',
+        'cyan-gradient': 'linear-gradient(135deg, #06B6D4, #22D3EE)',
       },
 
       animation: {
@@ -82,16 +78,16 @@ export default {
         slideIn: { from: { opacity: 0, transform: 'translateX(-10px)' }, to: { opacity: 1, transform: 'translateX(0)' } },
         scaleIn: { from: { opacity: 0, transform: 'scale(0.95)' }, to: { opacity: 1, transform: 'scale(1)' } },
         glowPulse: {
-          '0%,100%': { boxShadow: '0 0 0 0 rgba(201,168,76,0.35)' },
-          '50%': { boxShadow: '0 0 20px 4px rgba(201,168,76,0.15)' },
+          '0%,100%': { boxShadow: '0 0 0 0 rgba(99,102,241,0.35)' },
+          '50%': { boxShadow: '0 0 20px 4px rgba(99,102,241,0.15)' },
         },
       },
 
       boxShadow: {
-        'gold-glow': '0 0 30px rgba(201,168,76,0.25)',
-        'gold-sm': '0 0 12px rgba(201,168,76,0.18)',
+        'indigo-glow': '0 0 30px rgba(99,102,241,0.25)',
+        'indigo-sm': '0 0 12px rgba(99,102,241,0.18)',
         'card-dark': '0 4px 28px rgba(0,0,0,0.45)',
-        'card-light': '0 2px 12px rgba(26,21,8,0.08)',
+        'card-light': '0 2px 12px rgba(13,16,51,0.08)',
       },
 
       backdropBlur: { xs: '2px' },

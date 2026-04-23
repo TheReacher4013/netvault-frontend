@@ -183,7 +183,7 @@ export default function Sidebar({ open, onClose }) {
           style={{ color: theme.text }}
         >
           <LogOut size={15} />
-          <span>Sign Out</span>
+          <span>Log Out</span>
         </button>
       </div>
     </aside>

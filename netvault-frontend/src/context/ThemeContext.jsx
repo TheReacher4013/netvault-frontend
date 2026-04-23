@@ -1,62 +1,37 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 
 /**
- * ══════════════════════════════════════════════════════════════════
- *  VISIONCRAFT COLOR SYSTEM
- *
- *  Dark base:  Cinematic warm black  #12100C
- *  Accent:     Warm gold / amber     #C9A84C → #E2C06A
- *  Text:       Warm parchment white  #F0EAD6
- *
- *  Each role shares the same cinematic dark base but gets its
- *  own distinct gold/amber hue for accent + accent2.
- *
- *  superAdmin  →  Deep Royal Gold   #C9A84C / #E2C06A
- *  admin       →  Warm Amber        #D4872A / #F0A84A
- *  staff       →  Bronze            #A07840 / #C09860
- *  client      →  Ochre             #B89A30 / #D4B84A
- * ══════════════════════════════════════════════════════════════════
+ * DOMAINVAULT COLOR SYSTEM
+ * superAdmin → Indigo  #6366F1 / #818CF8
+ * admin      → Violet  #8B5CF6 / #A78BFA
+ * staff      → Blue    #3B82F6 / #60A5FA
+ * client     → Cyan    #06B6D4 / #22D3EE
  */
 const ROLE_ACCENTS = {
-    superAdmin: { accent: '#C9A84C', accent2: '#E2C06A', name: 'Super Admin' },
-    admin: { accent: '#D4872A', accent2: '#F0A84A', name: 'Admin' },
-    staff: { accent: '#A07840', accent2: '#C09860', name: 'Staff' },
-    client: { accent: '#B89A30', accent2: '#D4B84A', name: 'Client' },
+    superAdmin: { accent: '#6366F1', accent2: '#818CF8', name: 'Super Admin' },
+    admin: { accent: '#8B5CF6', accent2: '#A78BFA', name: 'Admin' },
+    staff: { accent: '#3B82F6', accent2: '#60A5FA', name: 'Staff' },
+    client: { accent: '#06B6D4', accent2: '#22D3EE', name: 'Client' },
 }
 
-/**
- *  DARK  — Cinematic Warm Black (VisionCraft-exact)
- *    bg      #12100C   deep warm black
- *    bg2     #1A1710   panel / sidebar
- *    surface #221F14   cards
- *    border  warm gold @ 11% alpha
- *    text    #F0EAD6   warm parchment
- *    muted   #8A7E62   warm tan-grey
- *
- *  LIGHT — Warm Cream
- *    bg      #FAF7F0   parchment cream
- *    bg2     #FFFFFF   white panels
- *    text    #1A1508   warm near-black
- *    muted   #7A7060   warm mid-grey
- */
 const MODE_PALETTES = {
     dark: {
-        bg: '#12100C',
-        bg2: '#1A1710',
-        surface: '#221F14',
-        border: 'rgba(201,168,76,0.11)',
-        text: '#F0EAD6',
-        muted: '#8A7E62',
-        overlay: 'rgba(18,16,12,0.78)',
+        bg: '#0A0B0F',
+        bg2: '#0F1117',
+        surface: '#161A24',
+        border: 'rgba(99,102,241,0.14)',
+        text: '#E8EDFF',
+        muted: '#6B7385',
+        overlay: 'rgba(10,11,15,0.80)',
     },
     light: {
-        bg: '#FAF7F0',
+        bg: '#F4F6FF',
         bg2: '#FFFFFF',
         surface: '#FFFFFF',
-        border: 'rgba(26,21,8,0.09)',
-        text: '#1A1508',
-        muted: '#7A7060',
-        overlay: 'rgba(250,247,240,0.82)',
+        border: 'rgba(99,102,241,0.12)',
+        text: '#0D1033',
+        muted: '#6B7385',
+        overlay: 'rgba(244,246,255,0.90)',
     },
 }
 
@@ -98,7 +73,6 @@ export function ThemeProvider({ children, defaultRole = 'admin' }) {
     useEffect(() => {
         const root = document.documentElement
 
-        // Base palette
         root.style.setProperty('--nv-bg', theme.bg)
         root.style.setProperty('--nv-bg2', theme.bg2)
         root.style.setProperty('--nv-surface', theme.surface)
@@ -108,17 +82,15 @@ export function ThemeProvider({ children, defaultRole = 'admin' }) {
         root.style.setProperty('--nv-text', theme.text)
         root.style.setProperty('--nv-muted', theme.muted)
 
-        // Dropdown thick border vars
         root.style.setProperty('--nv-dd-bg', mode === 'dark' ? theme.surface : theme.bg2)
         root.style.setProperty('--nv-dd-border', theme.accent)
         root.style.setProperty('--nv-dd-hover', `${theme.accent}18`)
         root.style.setProperty('--nv-dd-selected', `${theme.accent}22`)
 
-        // Status — warm-tuned
         root.style.setProperty('--nv-success', mode === 'dark' ? '#4ADE80' : '#16A34A')
         root.style.setProperty('--nv-success-bg', mode === 'dark' ? 'rgba(74,222,128,0.10)' : 'rgba(22,163,74,0.08)')
-        root.style.setProperty('--nv-warning', theme.accent)
-        root.style.setProperty('--nv-warning-bg', `${theme.accent}15`)
+        root.style.setProperty('--nv-warning', mode === 'dark' ? '#FBBF24' : '#D97706')
+        root.style.setProperty('--nv-warning-bg', mode === 'dark' ? 'rgba(251,191,36,0.12)' : 'rgba(217,119,6,0.08)')
         root.style.setProperty('--nv-danger', mode === 'dark' ? '#F87171' : '#DC2626')
         root.style.setProperty('--nv-danger-bg', mode === 'dark' ? 'rgba(248,113,113,0.10)' : 'rgba(220,38,38,0.08)')
         root.style.setProperty('--nv-info', mode === 'dark' ? '#60A5FA' : '#2563EB')
@@ -145,4 +117,3 @@ export const useTheme = () => {
 }
 
 export { ROLE_ACCENTS }
-

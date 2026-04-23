@@ -1,5 +1,5 @@
-/* ─── Google Fonts ───────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* ─── Google Fonts — DomainVault Style ───────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -20,7 +20,7 @@
   }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -36,7 +36,7 @@
   h4,
   h5,
   h6 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.25;
@@ -51,7 +51,7 @@
     font-feature-settings: 'liga' 1, 'calt' 1;
   }
 
-  /* ── Scrollbar — warm gold tint ── */
+  /* ── Scrollbar — indigo tint ── */
   ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -62,36 +62,31 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(201, 168, 76, 0.22);
+    background: rgba(99, 102, 241, 0.25);
     border-radius: 99px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 168, 76, 0.42);
+    background: rgba(99, 102, 241, 0.45);
   }
 
-  /* ══════════════════════════════════════════════════════════
-     SELECT DROPDOWN — THICK GOLD BORDER
-     The main element. 2px solid accent border, gold caret,
-     warm surface bg, gold selected state.
-  ══════════════════════════════════════════════════════════ */
+  /* ── Select Dropdown — indigo border ── */
   select {
     color-scheme: dark;
-    background-color: var(--nv-dd-bg, #221F14);
+    background-color: var(--nv-dd-bg, #161A24);
     color: var(--nv-text);
-    border: 2px solid var(--nv-dd-border, #C9A84C);
+    border: 1.5px solid var(--nv-dd-border, #6366F1);
     border-radius: 10px;
     padding: 8px 36px 8px 12px;
     font-size: 13px;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     appearance: none;
     -webkit-appearance: none;
-    /* Gold caret arrow */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236366F1' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
   }
@@ -102,45 +97,45 @@
 
   select:focus {
     border-color: var(--nv-accent);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.18);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   }
 
   select option {
-    background-color: #221F14;
-    color: #F0EAD6;
+    background-color: #161A24;
+    color: #E8EDFF;
     padding: 10px 12px;
     font-weight: 500;
   }
 
   select option:hover,
   select option:checked {
-    background-color: rgba(201, 168, 76, 0.18);
-    color: #E2C06A;
-    font-weight: 700;
+    background-color: rgba(99, 102, 241, 0.18);
+    color: #818CF8;
+    font-weight: 600;
   }
 
   /* ── Light mode select ── */
   html.light select {
     color-scheme: light;
     background-color: #FFFFFF;
-    color: #1A1508;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4872A' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    color: #0D1033;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236366F1' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   html.light select:focus {
-    box-shadow: 0 0 0 3px rgba(212, 135, 42, 0.18);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   }
 
   html.light select option {
     background-color: #FFFFFF;
-    color: #1A1508;
+    color: #0D1033;
   }
 
   html.light select option:hover,
   html.light select option:checked {
-    background-color: rgba(212, 135, 42, 0.10);
-    color: #D4872A;
-    font-weight: 700;
+    background-color: rgba(99, 102, 241, 0.10);
+    color: #6366F1;
+    font-weight: 600;
   }
 
   /* ── Input placeholder ── */
@@ -162,7 +157,7 @@
     border-radius: 10px;
     padding: 9px 13px;
     font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     width: 100%;
@@ -176,7 +171,7 @@
   input[type="tel"]:focus,
   textarea:focus {
     border-color: var(--nv-accent);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
   }
 
   html.light input[type="text"]:focus,
@@ -186,32 +181,32 @@
   html.light input[type="search"]:focus,
   html.light input[type="tel"]:focus,
   html.light textarea:focus {
-    box-shadow: 0 0 0 3px rgba(212, 135, 42, 0.15);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
   }
 }
 
 /* ─── Components ─────────────────────────────────────────────────────────── */
 @layer components {
 
-  /* ── Glass card — warm tint ── */
+  /* ── Glass card ── */
   .glass {
-    background: rgba(34, 31, 20, 0.72);
+    background: rgba(22, 26, 36, 0.72);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(201, 168, 76, 0.10);
+    border: 1px solid rgba(99, 102, 241, 0.12);
   }
 
   html.light .glass {
     background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(26, 21, 8, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.10);
   }
 
-  /* ── Skeleton shimmer — warm gold ── */
+  /* ── Skeleton shimmer ── */
   .skeleton {
     background: linear-gradient(90deg,
-        rgba(201, 168, 76, 0.05) 25%,
-        rgba(201, 168, 76, 0.10) 50%,
-        rgba(201, 168, 76, 0.05) 75%);
+        rgba(99, 102, 241, 0.05) 25%,
+        rgba(99, 102, 241, 0.10) 50%,
+        rgba(99, 102, 241, 0.05) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 6px;
@@ -219,30 +214,26 @@
 
   html.light .skeleton {
     background: linear-gradient(90deg,
-        rgba(212, 135, 42, 0.05) 25%,
-        rgba(212, 135, 42, 0.09) 50%,
-        rgba(212, 135, 42, 0.05) 75%);
+        rgba(99, 102, 241, 0.04) 25%,
+        rgba(99, 102, 241, 0.08) 50%,
+        rgba(99, 102, 241, 0.04) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
 
-  /* ══════════════════════════════════════════════════════════
-     THICK DROPDOWN COMPONENT
-     Custom dropdown trigger + menu panel.
-     Gold 2px border, warm surface, left-strip on selected.
-  ══════════════════════════════════════════════════════════ */
+  /* ── Dropdown trigger ── */
   .dropdown-trigger {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
     border-radius: 10px;
-    border: 2px solid var(--nv-dd-border);
+    border: 1.5px solid var(--nv-dd-border);
     background: var(--nv-dd-bg);
     color: var(--nv-accent);
     font-size: 13px;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
     outline: none;
@@ -257,12 +248,7 @@
   .dropdown-trigger:focus,
   .dropdown-trigger[aria-expanded="true"] {
     border-color: var(--nv-accent);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.18);
-  }
-
-  html.light .dropdown-trigger:focus,
-  html.light .dropdown-trigger[aria-expanded="true"] {
-    box-shadow: 0 0 0 3px rgba(212, 135, 42, 0.18);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
   }
 
   .dropdown-trigger .caret {
@@ -282,7 +268,7 @@
   .dropdown-menu {
     min-width: 160px;
     border-radius: 10px;
-    border: 2px solid var(--nv-dd-border);
+    border: 1.5px solid var(--nv-dd-border);
     background: var(--nv-dd-bg);
     overflow: hidden;
     animation: scaleIn 0.15s ease;
@@ -311,7 +297,7 @@
   .dropdown-item.selected {
     background: var(--nv-dd-selected);
     color: var(--nv-accent);
-    font-weight: 700;
+    font-weight: 600;
     border-left-color: var(--nv-accent);
   }
 
@@ -333,7 +319,7 @@
     @apply badge-base;
     background: var(--nv-warning-bg);
     color: var(--nv-warning);
-    border: 1px solid rgba(201, 168, 76, 0.28);
+    border: 1px solid rgba(251, 191, 36, 0.28);
   }
 
   .badge-expired,
@@ -351,7 +337,6 @@
     border: 1px solid rgba(96, 165, 250, 0.22);
   }
 
-  /* Light badge tweaks */
   html.light .badge-active,
   html.light .badge-paid {
     background: rgba(22, 163, 74, 0.08);
@@ -361,9 +346,9 @@
 
   html.light .badge-expiring,
   html.light .badge-pending {
-    background: rgba(212, 135, 42, 0.08);
-    color: #D4872A;
-    border-color: rgba(212, 135, 42, 0.22);
+    background: rgba(217, 119, 6, 0.08);
+    color: #D97706;
+    border-color: rgba(217, 119, 6, 0.22);
   }
 
   html.light .badge-expired,
@@ -379,10 +364,10 @@
     border-color: rgba(37, 99, 235, 0.20);
   }
 
-  /* ── Focus ring — gold ── */
+  /* ── Focus ring ── */
   .focus-ring {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.30);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.30);
   }
 
   /* ── Divider ── */
@@ -393,12 +378,12 @@
 
   /* ── Table row hover ── */
   .table-row-hover:hover {
-    background: rgba(201, 168, 76, 0.04);
+    background: rgba(99, 102, 241, 0.04);
     transition: background 0.15s ease;
   }
 
   html.light .table-row-hover:hover {
-    background: rgba(212, 135, 42, 0.04);
+    background: rgba(99, 102, 241, 0.04);
   }
 
   /* ── Card ── */
@@ -411,16 +396,16 @@
   }
 
   .card:hover {
-    border-color: rgba(201, 168, 76, 0.28);
-    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.08);
+    border-color: rgba(99, 102, 241, 0.30);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
   }
 
   html.light .card:hover {
-    border-color: rgba(212, 135, 42, 0.28);
-    box-shadow: 0 4px 16px rgba(212, 135, 42, 0.07);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.07);
   }
 
-  /* ── Button primary — gold filled ── */
+  /* ── Button primary ── */
   .btn-primary {
     display: inline-flex;
     align-items: center;
@@ -429,19 +414,19 @@
     padding: 9px 18px;
     border-radius: 10px;
     font-size: 13px;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     border: none;
     outline: none;
     background: var(--nv-accent);
-    color: #12100C;
+    color: #ffffff;
     transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
   }
 
   .btn-primary:hover {
     opacity: 0.88;
-    box-shadow: 0 0 18px rgba(201, 168, 76, 0.30);
+    box-shadow: 0 0 18px rgba(99, 102, 241, 0.35);
   }
 
   .btn-primary:active {
@@ -457,8 +442,8 @@
     padding: 8px 16px;
     border-radius: 10px;
     font-size: 13px;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
     cursor: pointer;
     background: transparent;
     border: 1.5px solid var(--nv-border);
@@ -470,23 +455,19 @@
   .btn-ghost:hover {
     border-color: var(--nv-accent);
     color: var(--nv-accent);
-    background: rgba(201, 168, 76, 0.08);
-  }
-
-  html.light .btn-ghost:hover {
-    background: rgba(212, 135, 42, 0.07);
+    background: rgba(99, 102, 241, 0.08);
   }
 
   /* ── Sidebar nav active ── */
   .nav-active {
-    background: rgba(201, 168, 76, 0.14) !important;
+    background: rgba(99, 102, 241, 0.14) !important;
     color: var(--nv-accent2) !important;
-    font-weight: 700;
+    font-weight: 600;
     border-right: 2px solid var(--nv-accent);
   }
 
   html.light .nav-active {
-    background: rgba(212, 135, 42, 0.10) !important;
+    background: rgba(99, 102, 241, 0.10) !important;
     color: var(--nv-accent) !important;
   }
 }
@@ -494,7 +475,6 @@
 /* ─── Utilities ──────────────────────────────────────────────────────────── */
 @layer utilities {
 
-  /* Gold text gradient */
   .text-gradient {
     background: linear-gradient(135deg, var(--nv-accent), var(--nv-accent2));
     -webkit-background-clip: text;
@@ -502,8 +482,7 @@
     background-clip: text;
   }
 
-  /* Animated gold shimmer for headlines (like VisionCraft) */
-  .text-gold-shimmer {
+  .text-shimmer {
     background: linear-gradient(90deg, var(--nv-accent) 0%, var(--nv-accent2) 40%, var(--nv-accent) 60%, var(--nv-accent) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
@@ -525,18 +504,16 @@
     scrollbar-width: none;
   }
 
-  /* Field label */
   .field-label {
     display: block;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--nv-muted);
     margin-bottom: 5px;
   }
 
-  /* Gold glow on hover */
   .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(201, 168, 76, 0.20);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.22);
     transition: box-shadow 0.2s ease;
   }
 }
