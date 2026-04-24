@@ -27,9 +27,8 @@ function generate(opts) {
   }
   if (!chars) return ''
 
-  // Crypto-random: avoid Math.random bias by rejection-sampling
   const out = new Array(opts.length)
-  const buf = new Uint32Array(opts.length * 2) // extra headroom for rejections
+  const buf = new Uint32Array(opts.length * 2) // 
   crypto.getRandomValues(buf)
 
   let j = 0
@@ -48,7 +47,7 @@ function generate(opts) {
   return out.join('')
 }
 
-// Rough strength estimate using character pool size and length
+
 function strength(password, opts) {
   let pool = 0
   if (opts.lower)   pool += 26

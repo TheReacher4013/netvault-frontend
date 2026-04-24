@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import api from '../services/api'
 
-// ─── Scroll animation hook ─────────────────────────────────────────────────
+
 function useInView(threshold = 0.15) {
     const ref = useRef(null)
     const [inView, setInView] = useState(false)
