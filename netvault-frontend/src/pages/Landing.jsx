@@ -7,6 +7,7 @@ import {
     Check, ArrowRight, Shield, Star, Search, RefreshCw,
 } from 'lucide-react'
 import api from '../services/api'
+import NetVaultChatbot from '../components/NetVaultChatbot'
 
 
 function useInView(threshold = 0.15) {
@@ -142,7 +143,6 @@ export default function Landing() {
         return () => clearTimeout(t)
     }, [])
 
-    // Cycle through domain rows in mockup
     useEffect(() => {
         const t = setInterval(() => setMockupRow(r => (r + 1) % DOMAIN_ROWS.length), 2000)
         return () => clearInterval(t)
@@ -151,7 +151,6 @@ export default function Landing() {
     const surface = { background: theme.surface, border: `1px solid ${theme.border}` }
     const accentBg = (op = '15') => `${theme.accent}${op}`
 
-    // Floating particles config
     const particles = [
         { width: 6, height: 6, top: '15%', left: '8%', background: `${theme.accent}60`, animation: 'floatA 6s ease-in-out infinite' },
         { width: 10, height: 10, top: '35%', left: '92%', background: `${theme.accent2}50`, animation: 'floatB 8s ease-in-out infinite' },
@@ -198,6 +197,28 @@ export default function Landing() {
                     0%, 100% { background-position: 0% 50%; }
                     50% { background-position: 100% 50%; }
                 }
+                /* Chatbot animations */
+                @keyframes nvPulse {
+                    0% { box-shadow: 0 6px 24px rgba(99,102,241,0.45), 0 0 0 0 rgba(99,102,241,0.5); }
+                    70% { box-shadow: 0 6px 24px rgba(99,102,241,0.45), 0 0 0 14px rgba(99,102,241,0); }
+                    100% { box-shadow: 0 6px 24px rgba(99,102,241,0.45), 0 0 0 0 rgba(99,102,241,0); }
+                }
+                @keyframes nvChatOpen {
+                    from { opacity: 0; transform: scale(0.88) translateY(16px); }
+                    to { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes nvMsgIn {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes nvOptIn {
+                    from { opacity: 0; transform: translateX(-6px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes nvBotBounce {
+                    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+                    30% { transform: translateY(-5px); opacity: 1; }
+                }
                 .shimmer-text {
                     background: linear-gradient(90deg, currentColor 0%, #fff 40%, currentColor 60%, currentColor 100%);
                     background-size: 200% auto;
@@ -205,7 +226,6 @@ export default function Landing() {
                     -webkit-text-fill-color: transparent;
                     animation: shimmer 3s linear infinite;
                 }
-                .hero-word { display: inline-block; }
                 .card-hover {
                     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
                 }
@@ -217,6 +237,10 @@ export default function Landing() {
                     width: max-content;
                 }
                 .integration-ticker:hover { animation-play-state: paused; }
+                /* Chatbot scrollbar */
+                .nv-chat-messages::-webkit-scrollbar { width: 4px; }
+                .nv-chat-messages::-webkit-scrollbar-track { background: transparent; }
+                .nv-chat-messages::-webkit-scrollbar-thumb { background: #6366f140; border-radius: 4px; }
             `}</style>
 
             {/* ── NAV ───────────────────────────────────────────────────── */}
@@ -253,7 +277,6 @@ export default function Landing() {
             {/* ── HERO ──────────────────────────────────────────────────── */}
             <section className="relative overflow-hidden" style={{ minHeight: '92vh', display: 'flex', alignItems: 'center' }}>
 
-                {/* Animated gradient mesh background */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                     <div style={{
                         position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
@@ -267,7 +290,6 @@ export default function Landing() {
                         background: `radial-gradient(ellipse, ${theme.accent2}18 0%, transparent 70%)`,
                         animation: 'floatA 13s ease-in-out infinite 2s',
                     }} />
-                    {/* Grid pattern */}
                     <div style={{
                         position: 'absolute', inset: 0,
                         backgroundImage: `linear-gradient(${theme.border} 1px, transparent 1px), linear-gradient(90deg, ${theme.border} 1px, transparent 1px)`,
@@ -275,20 +297,14 @@ export default function Landing() {
                         opacity: 0.4,
                         maskImage: 'radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%)',
                     }} />
-                    {/* Floating particles */}
                     {particles.map((p, i) => <Particle key={i} style={p} />)}
                 </div>
 
                 <div className="max-w-5xl mx-auto px-6 py-24 text-center relative w-full">
 
-                    {/* Announcement pill */}
-                    <div style={{
-                        opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(20px)',
-                        transition: 'all 0.6s ease 0ms',
-                    }}>
+                    <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(20px)', transition: 'all 0.6s ease 0ms' }}>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono mb-6"
                             style={{ background: accentBg(), color: theme.accent, border: `1px solid ${theme.border}` }}>
-                            {/* Pulse dot with ring */}
                             <span className="relative flex h-2 w-2">
                                 <span className="absolute inline-flex h-full w-full rounded-full opacity-75"
                                     style={{ background: theme.accent, animation: 'pulse-ring 1.5s ease-out infinite' }} />
@@ -298,20 +314,16 @@ export default function Landing() {
                         </div>
                     </div>
 
-                    {/* Label */}
                     <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(20px)', transition: 'all 0.6s ease 100ms' }}>
                         <p className="text-xs font-mono uppercase tracking-[0.2em] mb-5" style={{ color: theme.muted }}>
                             Built for agencies, MSPs &amp; IT teams
                         </p>
                     </div>
 
-                    {/* Headline */}
                     <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(24px)', transition: 'all 0.7s ease 200ms' }}>
                         <h1 className="font-display font-black text-4xl sm:text-5xl md:text-[64px] leading-[1.07] mb-6 tracking-tight">
                             Every domain, SSL &amp; host
                             <br />
-                            {/* FIX: replaced `background` shorthand with `backgroundImage` longhand
-                                to avoid conflict with `backgroundSize` (React warning resolved) */}
                             <span style={{
                                 backgroundImage: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2}, ${theme.accent})`,
                                 backgroundSize: '200% auto',
@@ -324,7 +336,6 @@ export default function Landing() {
                         </h1>
                     </div>
 
-                    {/* Typewriter subtitle */}
                     <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(20px)', transition: 'all 0.7s ease 350ms' }}>
                         <p className="text-base md:text-lg max-w-xl mx-auto mb-9 leading-relaxed" style={{ color: theme.muted }}>
                             Stop juggling dashboards. NetVault unifies every{' '}
@@ -335,7 +346,6 @@ export default function Landing() {
                         </p>
                     </div>
 
-                    {/* CTA pair */}
                     <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? 'none' : 'translateY(20px)', transition: 'all 0.7s ease 480ms' }}>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                             <Link to="/register"
@@ -360,7 +370,6 @@ export default function Landing() {
                         <div className="mt-16 rounded-2xl overflow-hidden text-left"
                             style={{ ...surface, background: isLight ? theme.bg2 : theme.surface, boxShadow: `0 40px 80px ${theme.accent}15, 0 0 0 1px ${theme.border}` }}>
 
-                            {/* Titlebar */}
                             <div className="flex items-center gap-2.5 px-4 py-3"
                                 style={{ background: isLight ? theme.bg : '#0d0d18', borderBottom: `1px solid ${theme.border}` }}>
                                 <div className="flex gap-1.5">
@@ -376,7 +385,6 @@ export default function Landing() {
                                 </span>
                             </div>
 
-                            {/* Domain rows with animation */}
                             <div className="p-5">
                                 <div className="flex items-center justify-between mb-4">
                                     <span className="font-display font-bold text-sm">Domain Portfolio</span>
@@ -415,7 +423,6 @@ export default function Landing() {
                                     </div>
                                 ))}
 
-                                {/* Progress bar animation */}
                                 <div className="mt-3 h-1 rounded-full overflow-hidden" style={{ background: `${theme.accent}15` }}>
                                     <div style={{
                                         height: '100%', borderRadius: 9999,
@@ -435,7 +442,6 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        {/* Social proof */}
                         <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
                             <div className="flex">
                                 {['M', 'A', 'R', '+'].map((l, i) => (
@@ -475,7 +481,6 @@ export default function Landing() {
                     </p>
                 </div>
                 <div className="overflow-hidden relative">
-                    {/* Fade edges */}
                     <div className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
                         style={{ background: `linear-gradient(90deg, ${theme.bg}, transparent)` }} />
                     <div className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
@@ -509,7 +514,7 @@ export default function Landing() {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {FEATURES.map((f, i) => (
-                            <FadeIn key={f.title} delay={i * 80} direction={i % 2 === 0 ? 'up' : 'up'}>
+                            <FadeIn key={f.title} delay={i * 80} direction="up">
                                 <div className="p-6 rounded-2xl card-hover h-full"
                                     style={{ ...surface, cursor: 'default' }}
                                     onMouseEnter={e => {
@@ -656,7 +661,6 @@ export default function Landing() {
                     <FadeIn>
                         <div className="rounded-3xl px-8 md:px-16 py-16 text-center relative overflow-hidden"
                             style={{ background: isLight ? theme.bg2 : `linear-gradient(135deg, ${theme.accent}12, ${theme.accent2}08)`, border: `1px solid ${theme.accent}30` }}>
-                            {/* Background glow */}
                             <div className="absolute inset-0 pointer-events-none"
                                 style={{ background: `radial-gradient(ellipse 60% 50% at 50% 0%, ${theme.accent}15, transparent)` }} />
                             <h2 className="font-display font-bold text-3xl md:text-4xl mb-4 relative">
@@ -706,6 +710,10 @@ export default function Landing() {
                     </div>
                 </div>
             </footer>
+
+            {/* ── AI CHATBOT ────────────────────────────────────────────── */}
+            <NetVaultChatbot />
+
         </div>
     )
 }

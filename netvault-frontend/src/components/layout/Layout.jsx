@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import { useAuth } from '../../context/AuthContext'
+import DashboardChatbot from '../DashboardChatbot'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -26,6 +27,9 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Dashboard AI Help Chatbot */}
+      <DashboardChatbot />
     </div>
   )
 }

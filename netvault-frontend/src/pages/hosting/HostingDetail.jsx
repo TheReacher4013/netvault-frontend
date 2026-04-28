@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { hostingService, clientService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, CardHeader, StatusBadge, Loader, PageHeader, Input, Select } from '../../components/ui/index'
-import { ArrowLeft, Eye, EyeOff, Edit3, Save, X, ToggleLeft, ToggleRight, Copy } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Edit3, Save, X, ToggleLeft, ToggleRight, Copy, Mail, Shield, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -248,6 +248,68 @@ export default function HostingDetail() {
           )}
         </div>
       </div>
+
+      {/* Email Hosting */}
+      {h.emailHosting?.enabled && (
+        <Card className="p-5">
+          <p className="text-xs font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text }}>
+            <Mail size={14} style={{ color: theme.accent }} />
+            Email Hosting
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4 text-xs">
+            {[
+              ['Provider', h.emailHosting.provider],
+              ['Accounts', h.emailHosting.accounts ? `${h.emailHosting.accounts} accounts` : null],
+              ['Storage', h.emailHosting.storageGB ? `${h.emailHosting.storageGB} GB / account` : null],
+              ['Expiry', h.emailHosting.expiryDate ? format(new Date(h.emailHosting.expiryDate), 'dd MMM yyyy') : null],
+              ['Renewal Cost', h.emailHosting.renewalCost ? `₹${h.emailHosting.renewalCost}` : null],
+            ].filter(([, v]) => v).map(([label, value]) => (
+              <div key={label}>
+                <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>{label}</p>
+                <p className="font-mono font-semibold" style={{ color: theme.text }}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Backup */}
+      <Card className="p-5">
+        <p className="text-xs font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text }}>
+          <Shield size={14} style={{ color: h.backup?.enabled ? '#10B981' : theme.muted }} />
+          Backup Status
+        </p>
+        {h.backup?.enabled ? (
+          <div className="grid sm:grid-cols-3 gap-4 text-xs">
+            <div>
+              <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>Status</p>
+              <span className="font-mono font-semibold" style={{ color: '#10B981' }}>✓ Enabled</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>Frequency</p>
+              <span className="font-mono capitalize" style={{ color: theme.text }}>{h.backup?.frequency || 'weekly'}</span>
+            </div>
+            {h.backup?.location && (
+              <div>
+                <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>Location</p>
+                <span className="font-mono" style={{ color: theme.text }}>{h.backup.location}</span>
+              </div>
+            )}
+            {h.backup?.lastBackup && (
+              <div>
+                <p className="text-[10px] font-mono uppercase mb-0.5" style={{ color: theme.muted }}>Last Backup</p>
+                <span className="font-mono" style={{ color: theme.text }}>{format(new Date(h.backup.lastBackup), 'dd MMM yyyy')}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-xs" style={{ color: '#F0A045' }}>
+            <AlertTriangle size={13} />
+            <span>Backups not configured — recommend enabling daily or weekly backups.</span>
+          </div>
+        )}
+      </Card>
+
     </div>
   )
 }

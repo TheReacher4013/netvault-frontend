@@ -7,7 +7,6 @@ import { Eye, EyeOff, ChevronDown, ShieldCheck } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const THEMES = [
-  { value: 'superAdmin', label: 'Super Admin', desc: 'Emerald' },
   { value: 'admin', label: 'Admin', desc: 'Indigo' },
   { value: 'staff', label: 'Staff', desc: 'Sky' },
   { value: 'client', label: 'Client', desc: 'Amber' },
@@ -27,11 +26,7 @@ export default function Login() {
   const [twoFactor, setTwoFactor] = useState(null)
   const [code, setCode] = useState('')
   const roleAccent = ROLE_ACCENTS[themeKey]
-  const theme = {
-    ...modeTheme,
-    accent: roleAccent.accent,
-    accent2: roleAccent.accent2,
-  }
+  const theme = { ...modeTheme, accent: roleAccent.accent, accent2: roleAccent.accent2 }
   const currentTheme = THEMES.find(r => r.value === themeKey)
   const imageOpacity = mode === 'dark' ? 0.18 : 0.35
   const overlayAlpha = mode === 'dark' ? 'rgba(10,11,15,0.72)' : 'rgba(248,250,252,0.78)'
@@ -39,6 +34,7 @@ export default function Login() {
   const afterLogin = (user) => {
     toast.success(`Welcome back, ${user.name}!`)
     if (user.role === 'client') navigate('/client-portal')
+    else if (user.role === 'superAdmin') navigate('/super-admin/tenants')
     else navigate('/dashboard')
   }
 
@@ -77,23 +73,18 @@ export default function Login() {
     } finally { setLoading(false) }
   }
 
-
   const loginBg = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80'
 
   return (
     <div className="min-h-screen flex relative overflow-hidden transition-all duration-500"
       style={{ background: theme.bg }}>
-
       <div className="absolute inset-0 transition-all duration-500">
         <img src={loginBg} alt="bg" className="w-full h-full object-cover" style={{ opacity: imageOpacity }} />
         <div className="absolute inset-0" style={{ background: overlayAlpha }} />
         <div className="absolute inset-0"
           style={{ background: `radial-gradient(ellipse 60% 60% at 70% 50%, ${theme.accent}12, transparent)` }} />
       </div>
-
-      <div className="absolute top-5 right-5 z-20">
-        <ThemeToggle />
-      </div>
+      <div className="absolute top-5 right-5 z-20"><ThemeToggle /></div>
 
       <div className="hidden lg:flex flex-1 flex-col justify-between p-12 relative z-10">
         <div className="flex items-center gap-3">
@@ -145,24 +136,18 @@ export default function Login() {
                   Enter the 6-digit code from your authenticator app
                 </p>
                 <form onSubmit={handle2FASubmit} className="space-y-4">
-                  <input
-                    autoFocus inputMode="numeric" pattern="[0-9]*" maxLength={8}
-                    value={code}
-                    onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
+                  <input autoFocus inputMode="numeric" pattern="[0-9]*" maxLength={8}
+                    value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="123 456"
                     className="w-full px-3 py-3 rounded-xl text-center text-2xl font-mono tracking-[0.3em] outline-none"
-                    style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }}
-                  />
+                    style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }} />
                   <button type="submit" disabled={loading}
                     className="w-full py-2.5 rounded-xl font-bold text-sm active:scale-95 disabled:opacity-60"
                     style={{ background: theme.accent, color: '#fff' }}>
                     {loading ? 'Verifying…' : 'Verify'}
                   </button>
-                  <button type="button"
-                    onClick={() => { setTwoFactor(null); setCode('') }}
-                    className="w-full text-xs hover:underline" style={{ color: theme.muted }}>
-                    ← Back
-                  </button>
+                  <button type="button" onClick={() => { setTwoFactor(null); setCode('') }}
+                    className="w-full text-xs hover:underline" style={{ color: theme.muted }}>← Back</button>
                 </form>
               </>
             ) : (
@@ -216,7 +201,7 @@ export default function Login() {
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                      style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text, fontFamily: "'DM Sans',sans-serif" }} />
+                      style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }} />
                   </div>
 
                   <div>
@@ -228,7 +213,7 @@ export default function Login() {
                       <input type={showPass ? 'text' : 'password'} value={password}
                         onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                         className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm outline-none"
-                        style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text, fontFamily: "'DM Sans',sans-serif" }} />
+                        style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }} />
                       <button type="button" onClick={() => setShowPass(v => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70" style={{ color: theme.text }}>
                         {showPass ? <EyeOff size={14} /> : <Eye size={14} />}

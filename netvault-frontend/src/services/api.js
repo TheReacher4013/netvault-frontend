@@ -68,6 +68,7 @@ export const whoisService = {
 export const activityService = {
   getAll: (params) => api.get('/activity', { params }),
   getEntityTimeline: (type, id) => api.get(`/activity/entity/${type}/${id}`),
+  deleteMany: (ids) => api.delete('/activity', {data : {ids}}),
 }
 
 export const clientPortalService = {

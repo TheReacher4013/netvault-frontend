@@ -156,8 +156,8 @@ export default function InvoiceList() {
         )}
 
         {/* Pagination */}
-        <div className="flex items-center justify-between gap-3 p-4 flex-wrap" style={{ borderTop: `1px solid ${theme.border}` }}>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5 flex-wrap" style={{ borderTop: `1px solid ${theme.border}` }}>
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
             <span className="text-[11px] font-mono" style={{ color: theme.muted }}>Show</span>
             <input
               type="number" min="1" max="100"
@@ -175,7 +175,7 @@ export default function InvoiceList() {
                   else setPerPageInput(String(perPageInput))
                 }
               }}
-              className="w-14 text-center px-2 py-1 rounded-lg text-xs font-mono outline-none"
+              className="w-12 text-center px-2 py-1 rounded-lg text-xs font-mono outline-none"
               style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}`, color: theme.text }}
             />
             <span className="text-[11px] font-mono" style={{ color: theme.muted }}>per page</span>

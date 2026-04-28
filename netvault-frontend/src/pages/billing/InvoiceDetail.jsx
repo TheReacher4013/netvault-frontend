@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { billingService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, CardHeader, StatusBadge, Loader, PageHeader } from '../../components/ui/index'
-import { ArrowLeft, Download, CheckCircle, Trash2 } from 'lucide-react'
+import { ArrowLeft, Download, CheckCircle, Trash2, ChevronDown, FileJson, FileImage, File } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -15,6 +15,7 @@ export default function InvoiceDetail() {
   const qc = useQueryClient()
 
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [downloadOpen, setDownloadOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['invoice', id],
@@ -45,7 +46,8 @@ export default function InvoiceDetail() {
     deleteMut.mutate()
   }
 
-  const handleDownload = async () => {
+  const handleDownloadPDF = async () => {
+    setDownloadOpen(false)
     try {
       const res = await billingService.downloadPDF(id)
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
@@ -53,6 +55,91 @@ export default function InvoiceDetail() {
       a.href = url; a.download = `${inv.invoiceNo}.pdf`; a.click()
       URL.revokeObjectURL(url)
     } catch { toast.error('Failed to download PDF') }
+  }
+
+  const handleDownloadJSON = () => {
+    setDownloadOpen(false)
+    try {
+      const data = {
+        invoiceNo: inv.invoiceNo, client: inv.clientId?.name,
+        email: inv.clientId?.email, company: inv.clientId?.company,
+        status: inv.status, currency: inv.currency,
+        subtotal: inv.subtotal, taxRate: inv.taxRate, taxAmount: inv.taxAmount,
+        discount: inv.discount, total: inv.total,
+        dueDate: inv.dueDate, createdAt: inv.createdAt,
+        items: inv.items, notes: inv.notes,
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `${inv.invoiceNo}.json`; a.click()
+      URL.revokeObjectURL(url)
+    } catch { toast.error('Failed to export JSON') }
+  }
+
+  const handleDownloadImage = async (format = 'png') => {
+    setDownloadOpen(false)
+    try {
+      // Capture the invoice card via html2canvas-like approach using SVG
+      const inv2 = inv
+      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+        <rect width="600" height="800" fill="#0E0F13"/>
+        <rect x="30" y="30" width="540" height="740" rx="12" fill="#16171D" stroke="#2A2B35" stroke-width="1"/>
+        <text x="50" y="75" font-family="monospace" font-size="22" font-weight="bold" fill="#FFFFFF">${inv2.invoiceNo}</text>
+        <text x="50" y="100" font-family="monospace" font-size="12" fill="#6B7280">Invoice</text>
+        <line x1="50" y1="115" x2="550" y2="115" stroke="#2A2B35" stroke-width="1"/>
+        <text x="50" y="145" font-family="sans-serif" font-size="11" fill="#6B7280">Bill To</text>
+        <text x="50" y="165" font-family="sans-serif" font-size="14" font-weight="600" fill="#FFFFFF">${inv2.clientId?.name || ''}</text>
+        <text x="50" y="183" font-family="sans-serif" font-size="12" fill="#6B7280">${inv2.clientId?.email || ''}</text>
+        <text x="400" y="145" font-family="sans-serif" font-size="11" fill="#6B7280">Status</text>
+        <text x="400" y="165" font-family="monospace" font-size="13" font-weight="bold" fill="${inv2.status === 'paid' ? '#62B849' : inv2.status === 'overdue' ? '#C94040' : '#F0A045'}">${(inv2.status || '').toUpperCase()}</text>
+        <text x="400" y="183" font-family="sans-serif" font-size="11" fill="#6B7280">Due: ${inv2.dueDate ? new Date(inv2.dueDate).toLocaleDateString('en-IN') : ''}</text>
+        <line x1="50" y1="200" x2="550" y2="200" stroke="#2A2B35" stroke-width="1"/>
+        <text x="50" y="225" font-family="monospace" font-size="10" fill="#6B7280">DESCRIPTION</text>
+        <text x="380" y="225" font-family="monospace" font-size="10" fill="#6B7280">QTY</text>
+        <text x="430" y="225" font-family="monospace" font-size="10" fill="#6B7280">PRICE</text>
+        <text x="490" y="225" font-family="monospace" font-size="10" fill="#6B7280">TOTAL</text>
+        ${(inv2.items || []).map((item, idx) => `
+        <text x="50" y="${250 + idx * 28}" font-family="sans-serif" font-size="12" fill="#E5E7EB">${(item.description || '').slice(0, 35)}</text>
+        <text x="380" y="${250 + idx * 28}" font-family="monospace" font-size="12" fill="#9CA3AF">${item.quantity}</text>
+        <text x="430" y="${250 + idx * 28}" font-family="monospace" font-size="12" fill="#9CA3AF">₹${(item.unitPrice || 0).toLocaleString('en-IN')}</text>
+        <text x="490" y="${250 + idx * 28}" font-family="monospace" font-size="12" fill="#6366F1">₹${(item.total || 0).toLocaleString('en-IN')}</text>
+        `).join('')}
+        <line x1="50" y1="${250 + (inv2.items?.length || 0) * 28 + 10}" x2="550" y2="${250 + (inv2.items?.length || 0) * 28 + 10}" stroke="#2A2B35" stroke-width="1"/>
+        <text x="400" y="${280 + (inv2.items?.length || 0) * 28 + 10}" font-family="sans-serif" font-size="12" fill="#6B7280">Subtotal</text>
+        <text x="490" y="${280 + (inv2.items?.length || 0) * 28 + 10}" font-family="monospace" font-size="12" fill="#E5E7EB">₹${(inv2.subtotal || 0).toLocaleString('en-IN')}</text>
+        <text x="400" y="${305 + (inv2.items?.length || 0) * 28 + 10}" font-family="sans-serif" font-size="12" fill="#6B7280">Tax (${inv2.taxRate}%)</text>
+        <text x="490" y="${305 + (inv2.items?.length || 0) * 28 + 10}" font-family="monospace" font-size="12" fill="#E5E7EB">₹${(inv2.taxAmount || 0).toLocaleString('en-IN')}</text>
+        <text x="400" y="${340 + (inv2.items?.length || 0) * 28 + 10}" font-family="sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">Total</text>
+        <text x="470" y="${340 + (inv2.items?.length || 0) * 28 + 10}" font-family="monospace" font-size="18" font-weight="bold" fill="#6366F1">₹${(inv2.total || 0).toLocaleString('en-IN')}</text>
+        <text x="50" y="760" font-family="monospace" font-size="10" fill="#374151">Generated by NetVault · ${new Date().toLocaleDateString('en-IN')}</text>
+      </svg>`
+
+      const blob = new Blob([svgContent], { type: 'image/svg+xml' })
+      if (format === 'svg') {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = `${inv2.invoiceNo}.svg`; a.click()
+        URL.revokeObjectURL(url)
+      } else {
+        // Convert SVG → Canvas → JPEG
+        const url = URL.createObjectURL(blob)
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = 600; canvas.height = 800
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0)
+          URL.revokeObjectURL(url)
+          canvas.toBlob(jpgBlob => {
+            const a = document.createElement('a')
+            a.href = URL.createObjectURL(jpgBlob)
+            a.download = `${inv2.invoiceNo}.jpg`; a.click()
+          }, 'image/jpeg', 0.92)
+        }
+        img.src = url
+      }
+    } catch { toast.error('Failed to export image') }
   }
 
   if (isLoading) return <Loader text="Loading invoice..." />
@@ -68,7 +155,29 @@ export default function InvoiceDetail() {
         actions={
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate('/billing')}><ArrowLeft size={13} />Back</Button>
-            <Button variant="secondary" size="sm" onClick={handleDownload}><Download size={13} />PDF</Button>
+            <div className="relative">
+              <Button variant="secondary" size="sm" onClick={() => setDownloadOpen(v => !v)}>
+                <Download size={13} />Download<ChevronDown size={11} className={`transition-transform ${downloadOpen ? 'rotate-180' : ''}`} />
+              </Button>
+              {downloadOpen && (
+                <div className="absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden shadow-2xl min-w-[160px]"
+                  style={{ background: 'var(--nv-surface, #16171D)', border: '1px solid var(--nv-border, #2A2B35)' }}
+                  onMouseLeave={() => setDownloadOpen(false)}>
+                  {[
+                    { icon: <File size={13} />, label: 'PDF', action: handleDownloadPDF, color: '#C94040' },
+                    { icon: <FileJson size={13} />, label: 'JSON', action: handleDownloadJSON, color: '#62B849' },
+                    { icon: <FileImage size={13} />, label: 'SVG', action: () => handleDownloadImage('svg'), color: '#4A8FA8' },
+                    { icon: <FileImage size={13} />, label: 'JPEG', action: () => handleDownloadImage('jpeg'), color: '#F0A045' },
+                  ].map(({ icon, label, action, color }) => (
+                    <button key={label} onClick={action}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold hover:bg-white/5 transition-colors text-left"
+                      style={{ color }}>
+                      {icon}{label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {(inv.status === 'pending' || inv.status === 'sent') && (
               <Button size="sm" onClick={() => statusMut.mutate('paid')} loading={statusMut.isPending}>
                 <CheckCircle size={13} />Mark Paid

@@ -71,6 +71,8 @@ export default function AddHosting() {
     expiryDate: '', clientId: '', controlPanel: 'cpanel',
     renewalCost: '', autoRenewal: false,
     cpanelInfo: { username: '', password: '', url: '' },
+    emailHosting: { enabled: false, provider: '', accounts: '', storageGB: '', expiryDate: '', renewalCost: '' },
+    backup: { enabled: false, frequency: 'weekly', location: '' },
   })
 
   const { data: clientsData } = useQuery({ queryKey: ['clients-list'], queryFn: () => clientService.getAll({ limit: 100 }) })
@@ -287,6 +289,111 @@ export default function AddHosting() {
               </button>
             </div>
           </div>
+        </Card>
+
+        {/* ── Email Hosting ── */}
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-semibold" style={{ color: theme.text }}>Email Hosting</p>
+              <p className="text-[11px] mt-0.5" style={{ color: theme.muted }}>
+                Track email hosting separately — Google Workspace, Zoho, cPanel Mail, etc.
+              </p>
+            </div>
+            <button type="button"
+              onClick={() => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, enabled: !f.emailHosting.enabled } }))}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+              style={{
+                background: form.emailHosting.enabled ? `${theme.accent}20` : `${theme.border}40`,
+                color: form.emailHosting.enabled ? theme.accent : theme.muted,
+                border: `1px solid ${form.emailHosting.enabled ? theme.accent : theme.border}`,
+              }}>
+              {form.emailHosting.enabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              <span className="text-xs font-mono font-bold">{form.emailHosting.enabled ? 'Tracked' : 'Not tracked'}</span>
+            </button>
+          </div>
+          {form.emailHosting.enabled && (
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label help="Email hosting provider — Google Workspace, Zoho Mail, cPanel Mail, Outlook 365, etc.">Provider</Label>
+                <input value={form.emailHosting.provider}
+                  onChange={e => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, provider: e.target.value } }))}
+                  placeholder="Google Workspace / Zoho / cPanel"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+              <div>
+                <Label help="Number of email accounts included in the plan.">No. of Accounts</Label>
+                <input type="number" value={form.emailHosting.accounts}
+                  onChange={e => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, accounts: e.target.value } }))}
+                  placeholder="5"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+              <div>
+                <Label help="Storage per account in GB.">Storage per Account (GB)</Label>
+                <input type="number" value={form.emailHosting.storageGB}
+                  onChange={e => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, storageGB: e.target.value } }))}
+                  placeholder="30"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+              <div>
+                <Label help="When does this email plan expire/renew?">Email Plan Expiry</Label>
+                <input type="date" value={form.emailHosting.expiryDate}
+                  onChange={e => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, expiryDate: e.target.value } }))}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+              <div>
+                <Label help="Annual renewal cost for email hosting (₹).">Renewal Cost (₹)</Label>
+                <input type="number" value={form.emailHosting.renewalCost}
+                  onChange={e => setForm(f => ({ ...f, emailHosting: { ...f.emailHosting, renewalCost: e.target.value } }))}
+                  placeholder="3600"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* ── Backup Tracking ── */}
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-semibold" style={{ color: theme.text }}>Backup Tracking</p>
+              <p className="text-[11px] mt-0.5" style={{ color: theme.muted }}>
+                Track whether backups are configured for this server.
+              </p>
+            </div>
+            <button type="button"
+              onClick={() => setForm(f => ({ ...f, backup: { ...f.backup, enabled: !f.backup.enabled } }))}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+              style={{
+                background: form.backup.enabled ? '#10B98120' : `${theme.border}40`,
+                color: form.backup.enabled ? '#10B981' : theme.muted,
+                border: `1px solid ${form.backup.enabled ? '#10B981' : theme.border}`,
+              }}>
+              {form.backup.enabled ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+              <span className="text-xs font-mono font-bold">{form.backup.enabled ? 'Enabled' : 'Disabled'}</span>
+            </button>
+          </div>
+          {form.backup.enabled && (
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <Label help="How often are backups taken?">Frequency</Label>
+                <select value={form.backup.frequency}
+                  onChange={e => setForm(f => ({ ...f, backup: { ...f.backup, frequency: e.target.value } }))}
+                  className={selectCls} style={fieldStyle}>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <Label help="Where are backups stored? e.g. AWS S3, cPanel backup, external drive.">Backup Location</Label>
+                <input value={form.backup.location}
+                  onChange={e => setForm(f => ({ ...f, backup: { ...f.backup, location: e.target.value } }))}
+                  placeholder="AWS S3 / cPanel / External"
+                  className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={fieldStyle} />
+              </div>
+            </div>
+          )}
         </Card>
 
         {/* ── cPanel Credentials ── */}
