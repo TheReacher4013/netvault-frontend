@@ -3,15 +3,19 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { authService, otpService } from '../../services/api'
 import { useTheme } from '../../context/ThemeContext'
 import ThemeToggle from '../../components/ui/ThemeToggle'
-import { ArrowRight, ArrowLeft, Check, Eye, EyeOff, Star, Mail, ShieldCheck } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Check, Eye, EyeOff, Star, Mail, ShieldCheck, Tag, X, Zap, Building2, Rocket } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
+
+// Plan icons mapping
+const PLAN_ICONS = { 0: Zap, 1: Building2, 2: Rocket }
 
 export default function Register() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { theme } = useTheme()
   const preselectedPlan = params.get('plan')
+  const refCode = params.get('ref') || ''
 
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
@@ -31,6 +35,12 @@ export default function Register() {
   const [plans, setPlans] = useState([])
   const [selectedPlanId, setSelectedPlanId] = useState(preselectedPlan || '')
   const [loading, setLoading] = useState(false)
+
+  // Coupon state
+  const [selectedCoupon, setSelectedCoupon] = useState(null)
+  const [manualCouponInput, setManualCouponInput] = useState('')
+  const [manualCouponError, setManualCouponError] = useState('')
+  const [manualCouponLoading, setManualCouponLoading] = useState(false)
 
   // Load public plans
   useEffect(() => {
@@ -57,7 +67,29 @@ export default function Register() {
     }
   }, [step])
 
-  // ── Field-level validation helpers ──────────────────────────────────
+  const selectedPlan = plans.find(p => p._id === selectedPlanId)
+
+  // ── Coupon helpers ───────────────────────────────────────────────────
+  const handleManualApply = async () => {
+    if (!manualCouponInput.trim()) return
+    setManualCouponLoading(true)
+    setManualCouponError('')
+    try {
+      const res = await api.post('/coupons/validate', {
+        code: manualCouponInput.trim().toUpperCase(),
+        orderAmount: selectedPlan?.price || 0,
+      })
+      const { coupon } = res.data.data
+      setSelectedCoupon(coupon)
+      toast.success('Coupon applied!')
+    } catch (err) {
+      setManualCouponError(err.response?.data?.message || 'Invalid coupon code')
+    } finally {
+      setManualCouponLoading(false)
+    }
+  }
+
+  // ── Field-level validation ───────────────────────────────────────────
   const validators = {
     name: v => {
       if (!v.trim()) return 'Name is required'
@@ -65,10 +97,7 @@ export default function Register() {
       if (!/^[a-zA-Z\s'.,-]+$/.test(v)) return 'Name can only contain letters'
       return ''
     },
-    orgName: v => {
-      if (!v.trim()) return 'Organisation name is required'
-      return ''
-    },
+    orgName: v => !v.trim() ? 'Organisation name is required' : '',
     email: v => {
       if (!v.trim()) return 'Email is required'
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address'
@@ -80,7 +109,7 @@ export default function Register() {
       return ''
     },
     phone: v => {
-      if (!v) return '' // optional
+      if (!v) return ''
       const digits = v.replace(/\D/g, '')
       if (digits.length !== 10) return 'Phone number must be exactly 10 digits'
       return ''
@@ -89,24 +118,17 @@ export default function Register() {
 
   const handleChange = e => {
     const { name, value } = e.target
-
-    // Name field — block number input entirely
     if (name === 'name' && /\d/.test(value)) {
       setErrors(prev => ({ ...prev, name: 'Name cannot contain numbers' }))
       return
     }
-
-    // Phone field — allow only digits, max 10
     if (name === 'phone') {
       const digits = value.replace(/\D/g, '').slice(0, 10)
       setForm(f => ({ ...f, phone: digits }))
       setErrors(prev => ({ ...prev, phone: validators.phone(digits) }))
       return
     }
-
     setForm(f => ({ ...f, [name]: value }))
-
-    // Clear error on change, re-validate live
     if (validators[name]) {
       setErrors(prev => ({ ...prev, [name]: validators[name](value) }))
     }
@@ -119,19 +141,15 @@ export default function Register() {
       const err = validators[f]?.(form[f])
       if (err) newErrors[f] = err
     })
-    // phone is optional but validate if filled
     const phoneErr = validators.phone(form.phone)
     if (phoneErr) newErrors.phone = phoneErr
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  // ── Step 1 → send OTP → Step 2 ────────
   const handleStep1Continue = async (e) => {
     e.preventDefault()
     if (!validateStep1()) return
-
     setOtpSending(true)
     try {
       await otpService.send(form.email.trim().toLowerCase())
@@ -145,7 +163,6 @@ export default function Register() {
     }
   }
 
-  // ── Resend OTP ────────────────
   const handleResend = async () => {
     if (resendIn > 0) return
     setOtpSending(true)
@@ -161,7 +178,6 @@ export default function Register() {
     }
   }
 
-  // ── Step 2 → verify OTP → Step 3 ────────────
   const handleVerifyOtp = async (e) => {
     e.preventDefault()
     if (otp.length !== 6) return toast.error('Enter the 6-digit code')
@@ -177,12 +193,17 @@ export default function Register() {
     }
   }
 
-  // ── Step 3 → register ──────────────
   const handleSubmit = async () => {
     if (!selectedPlanId) return toast.error('Please select a plan')
     setLoading(true)
     try {
-      const res = await authService.register({ ...form, planId: selectedPlanId })
+      const payload = {
+        ...form,
+        planId: selectedPlanId,
+        ...(selectedCoupon && { couponCode: selectedCoupon.code }),
+        ...(refCode && { referralCode: refCode }),
+      }
+      const res = await authService.register(payload)
       const { token, user } = res.data.data
       localStorage.setItem('nv_token', token)
       toast.success(`Welcome aboard, ${user.name}!`)
@@ -195,16 +216,21 @@ export default function Register() {
     }
   }
 
-  const selectedPlan = plans.find(p => p._id === selectedPlanId)
+  // ── Price calculation ────────────────────────────────────────────────
+  const originalPrice = selectedPlan?.price || 0
+  const discountAmount = selectedCoupon
+    ? selectedCoupon.discountType === 'percentage'
+      ? Math.round((originalPrice * selectedCoupon.discountValue) / 100)
+      : Math.min(selectedCoupon.discountValue, originalPrice)
+    : 0
+  const finalPrice = originalPrice - discountAmount
 
-  // ── Stepper ─────────────────────────────────────────────────────────
   const STEPS = [
     { n: 1, label: 'Your details' },
     { n: 2, label: 'Verify email' },
     { n: 3, label: 'Choose plan' },
   ]
 
-  // ── Inline error component ───────────────────────────────────────────
   const FieldError = ({ name }) =>
     errors[name] ? (
       <p className="text-[10px] font-mono mt-1" style={{ color: '#C94040' }}>
@@ -212,11 +238,19 @@ export default function Register() {
       </p>
     ) : null
 
+  const inputStyle = (hasError) => ({
+    background: `${theme.accent}08`,
+    border: `1px solid ${hasError ? '#C94040' : theme.border}`,
+    color: theme.text,
+    fontFamily: "'DM Sans',sans-serif",
+  })
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: theme.bg }}>
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse 60% 50% at 50% 0%, ${theme.accent}15, transparent)` }} />
 
+      {/* Nav */}
       <div className="relative z-10 flex items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg"
@@ -229,7 +263,7 @@ export default function Register() {
       </div>
 
       {/* Stepper */}
-      <div className="relative z-10 max-w-md mx-auto px-6 mb-6">
+      <div className="relative z-10 max-w-lg mx-auto px-6 mb-6">
         <div className="flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s.n} className="flex items-center gap-2 flex-1">
@@ -252,67 +286,31 @@ export default function Register() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-md mx-auto px-6 pb-16">
-        <div className="rounded-2xl p-7"
-          style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
+      <div className="relative z-10 max-w-lg mx-auto px-6 pb-16">
+        <div className="rounded-2xl p-7" style={{ background: theme.surface, border: `1px solid ${theme.border}` }}>
 
-          {/* ─── STEP 1 — Details ───────── */}
+          {/* ── STEP 1 ── */}
           {step === 1 && (
             <>
               <h1 className="font-display font-bold text-2xl mb-1">Create your account</h1>
               <p className="text-xs mb-6 font-mono" style={{ color: theme.muted }}>
                 Start your 14-day free trial
               </p>
-
               <form onSubmit={handleStep1Continue} className="space-y-3">
-
-                {/* Organisation name */}
-                <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
-                    Organisation name
-                  </label>
-                  <input type="text" name="orgName" value={form.orgName} onChange={handleChange}
-                    placeholder="Acme Digital" autoComplete="off"
-                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                    style={{
-                      background: `${theme.accent}08`,
-                      border: `1px solid ${errors.orgName ? '#C94040' : theme.border}`,
-                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                    }} />
-                  <FieldError name="orgName" />
-                </div>
-
-                {/* Name — letters only */}
-                <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
-                    Your name
-                  </label>
-                  <input type="text" name="name" value={form.name} onChange={handleChange}
-                    placeholder="Rahul Kumar" autoComplete="off"
-                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                    style={{
-                      background: `${theme.accent}08`,
-                      border: `1px solid ${errors.name ? '#C94040' : theme.border}`,
-                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                    }} />
-                  <FieldError name="name" />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
-                    Email
-                  </label>
-                  <input type="email" name="email" value={form.email} onChange={handleChange}
-                    placeholder="you@agency.com" autoComplete="email"
-                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                    style={{
-                      background: `${theme.accent}08`,
-                      border: `1px solid ${errors.email ? '#C94040' : theme.border}`,
-                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                    }} />
-                  <FieldError name="email" />
-                </div>
+                {[
+                  { label: 'Organisation name', name: 'orgName', type: 'text', placeholder: 'Acme Digital' },
+                  { label: 'Your name', name: 'name', type: 'text', placeholder: 'Rahul Kumar' },
+                  { label: 'Email', name: 'email', type: 'email', placeholder: 'you@agency.com' },
+                ].map(f => (
+                  <div key={f.name}>
+                    <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>{f.label}</label>
+                    <input type={f.type} name={f.name} value={form[f.name]} onChange={handleChange}
+                      placeholder={f.placeholder} autoComplete="off"
+                      className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+                      style={inputStyle(errors[f.name])} />
+                    <FieldError name={f.name} />
+                  </div>
+                ))}
 
                 {/* Password */}
                 <div>
@@ -322,11 +320,7 @@ export default function Register() {
                       value={form.password} onChange={handleChange} placeholder="Min 6 characters"
                       autoComplete="new-password"
                       className="w-full px-3 py-2.5 pr-10 rounded-xl text-sm outline-none"
-                      style={{
-                        background: `${theme.accent}08`,
-                        border: `1px solid ${errors.password ? '#C94040' : theme.border}`,
-                        color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                      }} />
+                      style={inputStyle(errors.password)} />
                     <button type="button" onClick={() => setShowPass(v => !v)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-70"
                       style={{ color: theme.text }}>
@@ -336,7 +330,7 @@ export default function Register() {
                   <FieldError name="password" />
                 </div>
 
-                {/* Phone — digits only, max 10 */}
+                {/* Phone */}
                 <div>
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
                     Phone <span className="font-normal opacity-60">(optional)</span>
@@ -344,11 +338,7 @@ export default function Register() {
                   <input type="tel" name="phone" value={form.phone} onChange={handleChange}
                     placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                    style={{
-                      background: `${theme.accent}08`,
-                      border: `1px solid ${errors.phone ? '#C94040' : theme.border}`,
-                      color: theme.text, fontFamily: "'DM Sans',sans-serif"
-                    }} />
+                    style={inputStyle(errors.phone)} />
                   <div className="flex items-center justify-between mt-1">
                     <FieldError name="phone" />
                     <span className="text-[10px] font-mono ml-auto" style={{ color: theme.muted }}>
@@ -366,14 +356,12 @@ export default function Register() {
 
               <p className="text-center text-xs mt-4" style={{ color: theme.muted }}>
                 Already have an account?{' '}
-                <Link to="/login" className="font-semibold hover:underline" style={{ color: theme.accent }}>
-                  Sign in
-                </Link>
+                <Link to="/login" className="font-semibold hover:underline" style={{ color: theme.accent }}>Sign in</Link>
               </p>
             </>
           )}
 
-          {/* ─── STEP 2 — OTP ──────────────── */}
+          {/* ── STEP 2 ── */}
           {step === 2 && (
             <>
               <div className="flex items-center gap-2 mb-1">
@@ -383,7 +371,6 @@ export default function Register() {
               <p className="text-xs mb-6 font-mono" style={{ color: theme.muted }}>
                 We sent a 6-digit code to <strong style={{ color: theme.text }}>{form.email}</strong>
               </p>
-
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div>
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
@@ -397,34 +384,26 @@ export default function Register() {
                     className="w-full px-3 py-3 rounded-xl text-center text-2xl font-mono tracking-[0.4em] outline-none"
                     style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }} />
                 </div>
-
                 <button type="submit" disabled={otpVerifying || otp.length !== 6}
                   className="w-full py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
                   style={{ background: theme.accent, color: '#fff' }}>
                   {otpVerifying ? 'Verifying…' : (<><ShieldCheck size={14} />Verify & continue</>)}
                 </button>
-
-                <div className="flex items-center justify-between pt-2 text-xs"
-                  style={{ color: theme.muted }}>
-                  <button type="button" onClick={() => setStep(1)}
-                    className="flex items-center gap-1 hover:underline">
+                <div className="flex items-center justify-between pt-2 text-xs" style={{ color: theme.muted }}>
+                  <button type="button" onClick={() => setStep(1)} className="flex items-center gap-1 hover:underline">
                     <ArrowLeft size={11} /> Change email
                   </button>
-                  {resendIn > 0 ? (
-                    <span>Resend in {resendIn}s</span>
-                  ) : (
+                  {resendIn > 0 ? <span>Resend in {resendIn}s</span> : (
                     <button type="button" onClick={handleResend} disabled={otpSending}
                       className="font-semibold hover:underline disabled:opacity-60"
-                      style={{ color: theme.accent }}>
-                      Resend code
-                    </button>
+                      style={{ color: theme.accent }}>Resend code</button>
                   )}
                 </div>
               </form>
             </>
           )}
 
-          {/* ─── STEP 3 — Plan ──────────── */}
+          {/* ── STEP 3 — Plan + Coupon ── */}
           {step === 3 && (
             <>
               <h1 className="font-display font-bold text-2xl mb-1">Choose your plan</h1>
@@ -432,69 +411,220 @@ export default function Register() {
                 All plans include a 14-day free trial — no credit card required
               </p>
 
-              {plans.length === 0 ? (
-                <div className="text-center py-12 text-sm" style={{ color: theme.muted }}>
-                  Loading plans…
+              {/* Referral banner */}
+              {refCode && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl mb-4 text-xs"
+                  style={{ background: '#16a34a15', border: '1px solid #16a34a40', color: '#16a34a' }}>
+                  <Check size={12} />
+                  Referral code <strong>{refCode}</strong> applied — you'll get a discount on your first invoice!
                 </div>
+              )}
+
+              {/* Plans — 2-column grid, no scroll */}
+              {plans.length === 0 ? (
+                <div className="text-center py-12 text-sm" style={{ color: theme.muted }}>Loading plans…</div>
               ) : (
-                <div className="space-y-3 mb-5">
-                  {plans.map(p => {
+                <div className="grid grid-cols-2 gap-2 mb-5">
+                  {plans.map((p, idx) => {
                     const isSelected = selectedPlanId === p._id
+                    const PlanIcon = PLAN_ICONS[idx] || Zap
                     return (
                       <button key={p._id} type="button"
                         onClick={() => setSelectedPlanId(p._id)}
-                        className="w-full text-left p-4 rounded-xl transition-all relative"
+                        className="text-left rounded-2xl transition-all relative overflow-hidden flex flex-col"
                         style={{
-                          background: isSelected ? `${theme.accent}15` : `${theme.accent}06`,
+                          background: isSelected ? `${theme.accent}12` : `${theme.accent}05`,
                           border: `${isSelected ? '2px' : '1px'} solid ${isSelected ? theme.accent : theme.border}`,
+                          padding: isSelected ? '11px' : '12px',
+                          boxShadow: isSelected ? `0 4px 20px ${theme.accent}20` : 'none',
+                          minHeight: '128px',
                         }}>
-                        {p.isPopular && !isSelected && (
-                          <div className="absolute -top-2 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider"
+
+                        {/* Popular badge */}
+                        {p.isPopular && (
+                          <div className="absolute top-0 right-0 flex items-center gap-0.5 px-2 py-0.5 text-[8px] font-mono font-bold uppercase tracking-wider rounded-bl-xl"
                             style={{ background: theme.accent, color: '#fff' }}>
-                            <Star size={8} /> Popular
+                            <Star size={7} /> Popular
                           </div>
                         )}
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <div className="font-semibold text-sm" style={{ color: theme.text }}>
-                              {p.displayName}
-                            </div>
-                            <div className="text-[10px] font-mono" style={{ color: theme.muted }}>
-                              {p.trialDays > 0 ? `${p.trialDays}-day free trial` : 'Free forever'}
-                            </div>
+
+                        {/* Icon + check row */}
+                        <div className="flex items-center justify-between mb-2.5">
+                          <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                            style={{ background: isSelected ? `${theme.accent}25` : `${theme.accent}10` }}>
+                            <PlanIcon size={15} style={{ color: isSelected ? theme.accent : theme.muted }} />
                           </div>
-                          <div className="font-display font-bold text-xl"
-                            style={{ color: isSelected ? theme.accent : theme.text }}>
-                            ₹{p.price}
-                            {p.price > 0 && (
-                              <span className="text-xs font-normal ml-1" style={{ color: theme.muted }}>/mo</span>
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                            style={{
+                              background: isSelected ? theme.accent : 'transparent',
+                              border: `2px solid ${isSelected ? theme.accent : theme.border}`,
+                            }}>
+                            {isSelected && <Check size={9} color="#fff" />}
+                          </div>
+                        </div>
+
+                        {/* Name */}
+                        <div className="font-bold text-xs mb-1 leading-tight" style={{ color: theme.text }}>
+                          {p.displayName}
+                        </div>
+
+                        {/* Price */}
+                        <div className="mb-1">
+                          {p.price === 0 ? (
+                            <span className="font-display font-bold text-lg leading-none"
+                              style={{ color: isSelected ? theme.accent : theme.text }}>Free</span>
+                          ) : (
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="font-display font-bold text-base leading-none"
+                                style={{ color: isSelected ? theme.accent : theme.text }}>₹{p.price}</span>
+                              <span className="text-[10px]" style={{ color: theme.muted }}>/mo</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Trial */}
+                        <div className="text-[9px] font-mono mt-auto pt-1" style={{ color: isSelected ? theme.accent : theme.muted }}>
+                          {p.trialDays > 0 ? `✓ ${p.trialDays}d free trial` : '✓ Free forever'}
+                        </div>
+
+                        {/* First feature tag */}
+                        {(p.features || []).length > 0 && (
+                          <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono leading-tight"
+                              style={{
+                                background: isSelected ? `${theme.accent}18` : `${theme.accent}08`,
+                                color: isSelected ? theme.accent : theme.muted,
+                                border: `1px solid ${isSelected ? `${theme.accent}30` : theme.border}`,
+                              }}>
+                              {p.features[0]}
+                            </span>
+                            {p.features.length > 1 && (
+                              <span className="text-[9px] font-mono" style={{ color: theme.muted }}>
+                                +{p.features.length - 1}
+                              </span>
                             )}
                           </div>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5 text-[10px]">
-                          {(p.features || []).slice(0, 4).map(f => (
-                            <span key={f} className="px-2 py-0.5 rounded font-mono"
-                              style={{ background: isSelected ? `${theme.accent}18` : theme.border, color: theme.muted }}>
-                              {f}
-                            </span>
-                          ))}
-                        </div>
+                        )}
                       </button>
                     )
                   })}
                 </div>
               )}
 
+              {/* Coupon Section */}
+              {selectedPlan && selectedPlan.price > 0 && (
+                <div className="mb-5">
+                  <label className="text-xs font-semibold block mb-2" style={{ color: theme.muted }}>
+                    <Tag size={11} className="inline mr-1" /> Have a coupon code?
+                  </label>
+
+                  {selectedCoupon ? (
+                    <div className="rounded-xl p-3" style={{ background: '#16a34a12', border: '1px solid #16a34a40' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Check size={14} style={{ color: '#16a34a' }} />
+                          <span className="font-mono font-bold text-sm" style={{ color: '#16a34a' }}>
+                            {selectedCoupon.code}
+                          </span>
+                          {selectedCoupon.description && (
+                            <span className="text-xs" style={{ color: theme.muted }}>— {selectedCoupon.description}</span>
+                          )}
+                        </div>
+                        <button type="button" onClick={() => { setSelectedCoupon(null); setManualCouponInput('') }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.muted }}>
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <div className="space-y-1 text-xs pt-2" style={{ borderTop: '1px solid #16a34a30' }}>
+                        <div className="flex justify-between" style={{ color: theme.muted }}>
+                          <span>Plan price</span><span>₹{originalPrice}/mo</span>
+                        </div>
+                        <div className="flex justify-between" style={{ color: '#16a34a' }}>
+                          <span>
+                            Discount ({selectedCoupon.discountType === 'percentage'
+                              ? `${selectedCoupon.discountValue}%`
+                              : `₹${selectedCoupon.discountValue} flat`})
+                          </span>
+                          <span>- ₹{discountAmount}</span>
+                        </div>
+                        <div className="flex justify-between font-bold pt-1"
+                          style={{ color: theme.text, borderTop: `1px solid ${theme.border}` }}>
+                          <span>You pay</span>
+                          <span style={{ color: theme.accent }}>₹{finalPrice}/mo</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={manualCouponInput}
+                        onChange={e => { setManualCouponInput(e.target.value.toUpperCase()); setManualCouponError('') }}
+                        onKeyDown={e => e.key === 'Enter' && handleManualApply()}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-3 py-2.5 rounded-xl text-sm outline-none font-mono uppercase"
+                        style={{
+                          background: `${theme.accent}08`,
+                          border: `1px solid ${manualCouponError ? '#C94040' : theme.border}`,
+                          color: theme.text,
+                        }}
+                      />
+                      <button type="button" onClick={handleManualApply}
+                        disabled={!manualCouponInput.trim() || manualCouponLoading}
+                        className="px-4 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 transition-all"
+                        style={{ background: theme.accent, color: '#fff', border: 'none', cursor: 'pointer' }}>
+                        {manualCouponLoading ? '…' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {manualCouponError && (
+                    <p className="text-[10px] font-mono mt-1.5" style={{ color: '#C94040' }}>{manualCouponError}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Order Summary */}
               {selectedPlan && (
-                <div className="p-3 rounded-xl mb-4 text-xs"
-                  style={{ background: `${theme.accent}10`, border: `1px solid ${theme.border}` }}>
-                  <div className="flex items-center justify-between">
-                    <span style={{ color: theme.muted }}>You'll start with</span>
-                    <span className="font-semibold" style={{ color: theme.accent }}>{selectedPlan.displayName}</span>
+                <div className="p-4 rounded-xl mb-5"
+                  style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
+                  <div className="text-xs font-semibold mb-3" style={{ color: theme.muted }}>ORDER SUMMARY</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span style={{ color: theme.muted }}>Plan</span>
+                      <span style={{ color: theme.text, fontWeight: 600 }}>{selectedPlan.displayName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span style={{ color: theme.muted }}>Billing</span>
+                      <span style={{ color: theme.text }}>
+                        {selectedPlan.price === 0 ? 'Free forever' : `₹${originalPrice}/month`}
+                      </span>
+                    </div>
+                    {selectedPlan.trialDays > 0 && (
+                      <div className="flex justify-between">
+                        <span style={{ color: theme.muted }}>Trial</span>
+                        <span style={{ color: '#16a34a', fontWeight: 600 }}>{selectedPlan.trialDays} days free</span>
+                      </div>
+                    )}
+                    {selectedCoupon && discountAmount > 0 && (
+                      <div className="flex justify-between" style={{ color: '#16a34a' }}>
+                        <span>Coupon ({selectedCoupon.code})</span>
+                        <span>- ₹{discountAmount}</span>
+                      </div>
+                    )}
+                    {selectedPlan.price > 0 && (
+                      <div className="flex justify-between font-bold pt-2"
+                        style={{ borderTop: `1px solid ${theme.border}`, color: theme.text }}>
+                        <span>Total after trial</span>
+                        <span style={{ color: theme.accent }}>
+                          ₹{selectedCoupon ? finalPrice : originalPrice}/mo
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
+              {/* Buttons */}
               <div className="flex gap-2">
                 <button type="button" onClick={() => setStep(2)} disabled={loading}
                   className="px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 disabled:opacity-60"
@@ -503,9 +633,11 @@ export default function Register() {
                 </button>
                 <button type="button" onClick={handleSubmit}
                   disabled={loading || !selectedPlanId}
-                  className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-60"
+                  className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
                   style={{ background: theme.accent, color: '#fff' }}>
-                  {loading ? 'Creating your account…' : 'Create account'}
+                  {loading ? 'Creating your account…' : (
+                    <>{selectedPlan?.trialDays > 0 ? 'Start free trial' : 'Create account'} <ArrowRight size={14} /></>
+                  )}
                 </button>
               </div>
 
@@ -514,7 +646,6 @@ export default function Register() {
               </p>
             </>
           )}
-
         </div>
       </div>
     </div>
