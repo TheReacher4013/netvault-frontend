@@ -99,7 +99,7 @@ function EmailScheduleSection() {
     return (
         <div style={{
             background: '#fff', border: '1px solid #E5E7EB', borderRadius: '14px',
-            padding: '24px', marginTop: '28px',
+            padding: 'clamp(16px, 4vw, 24px)', marginTop: '28px',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
@@ -131,11 +131,13 @@ function EmailScheduleSection() {
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                     Daily Send Time (IST)
                 </label>
-                <input type="time" value={sendTime} onChange={e => setSendTime(e.target.value)}
-                    style={{ ...inp, width: '160px' }} />
-                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#9CA3AF' }}>
-                    Reports will be delivered at this time every day
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <input type="time" value={sendTime} onChange={e => setSendTime(e.target.value)}
+                        style={{ ...inp, width: '160px' }} />
+                    <span style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                        Reports will be delivered at this time every day
+                    </span>
+                </div>
             </div>
 
             {/* Email input */}
@@ -166,11 +168,12 @@ function EmailScheduleSection() {
                         <div key={e} style={{
                             display: 'flex', alignItems: 'center', gap: '6px',
                             background: '#EEF2FF', border: '1px solid #C7D2FE',
-                            borderRadius: '20px', padding: '4px 12px', fontSize: '13px', color: '#4338CA',
+                            borderRadius: '20px', padding: '4px 12px', fontSize: '12px', color: '#4338CA',
+                            maxWidth: '100%', overflow: 'hidden',
                         }}>
-                            <span>📧 {e}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📧 {e}</span>
                             <button onClick={() => removeEmail(e)} style={{
-                                background: 'none', border: 'none', cursor: 'pointer',
+                                background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
                                 color: '#6366F1', fontSize: '14px', padding: '0', lineHeight: 1,
                             }}>×</button>
                         </div>
@@ -186,11 +189,13 @@ function EmailScheduleSection() {
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button onClick={handleSave} disabled={saving} style={{
+                    flex: '1 1 140px',
                     background: saving ? '#9CA3AF' : '#6366F1', color: '#fff', border: 'none',
                     borderRadius: '8px', padding: '10px 20px', cursor: saving ? 'not-allowed' : 'pointer',
                     fontSize: '13px', fontWeight: 700,
                 }}>{saving ? 'Saving…' : '💾 Save Schedule'}</button>
                 <button onClick={handleTest} disabled={testing} style={{
+                    flex: '1 1 140px',
                     background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px',
                     padding: '10px 20px', cursor: testing ? 'not-allowed' : 'pointer',
                     fontSize: '13px', fontWeight: 600, color: '#374151',
@@ -250,7 +255,7 @@ export default function SuperAdminReports() {
     const planOptions = [...new Set((data?.companies || []).map(c => c.planName).filter(Boolean))];
 
     return (
-        <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ padding: 'clamp(12px, 4vw, 24px)', maxWidth: '1100px', margin: '0 auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
                 <div>

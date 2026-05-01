@@ -9,7 +9,7 @@ import {
   Cell, PieChart, Pie, Legend,
 } from 'recharts'
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export default function RevenueReport() {
   const { theme } = useAuth()
@@ -64,11 +64,11 @@ export default function RevenueReport() {
       />
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Total Revenue', value: summary.totalRevenue || 0, color: theme.accent },
-          { label: 'Pending',       value: summary.pending || 0,       color: '#F0A045' },
-          { label: 'Overdue',       value: summary.overdue || 0,       color: '#C94040' },
+          { label: 'Pending', value: summary.pending || 0, color: '#F0A045' },
+          { label: 'Overdue', value: summary.overdue || 0, color: '#C94040' },
         ].map(({ label, value, color }) => (
           <Card key={label} className="p-5">
             <p className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: theme.muted }}>{label}</p>

@@ -136,62 +136,103 @@ export default function UserManagement() {
         {users.length === 0 ? (
           <div className="text-center py-12 text-sm" style={{ color: theme.muted }}>No team members yet</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider"
-                      style={{ color: theme.muted }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => {
-                  const role = ROLE_MAP[u.role] || { label: u.role, color: theme.muted }
-                  return (
-                    <tr key={u._id} className="hover:bg-white/[0.02] transition-colors"
-                      style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                            style={{ background: `${role.color}25`, color: role.color }}>
-                            {u.name?.charAt(0)?.toUpperCase()}
-                          </div>
-                          <span className="text-xs font-semibold" style={{ color: theme.text }}>{u.name}</span>
+          <>
+            {/* Mobile card view */}
+            <div className="sm:hidden divide-y" style={{ borderColor: theme.border }}>
+              {users.map(u => {
+                const role = ROLE_MAP[u.role] || { label: u.role, color: theme.muted }
+                return (
+                  <div key={u._id} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          style={{ background: `${role.color}25`, color: role.color }}>
+                          {u.name?.charAt(0)?.toUpperCase()}
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{u.email}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded font-semibold"
-                          style={{ background: `${role.color}15`, color: role.color }}>
-                          {role.label || u.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => toggleMut.mutate(u._id)}
-                          className="flex items-center gap-1 text-[10px] font-mono">
-                          {u.isActive !== false
-                            ? <><ToggleRight size={14} style={{ color: '#10B981' }} /><span style={{ color: '#10B981' }}>Active</span></>
-                            : <><ToggleLeft size={14} style={{ color: theme.muted }} /><span style={{ color: theme.muted }}>Inactive</span></>}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
-                        {u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => setDelId(u._id)}
-                          className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
-                          style={{ color: '#C94040' }}>
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <div>
+                          <p className="text-xs font-semibold" style={{ color: theme.text }}>{u.name}</p>
+                          <p className="text-[10px] font-mono" style={{ color: theme.muted }}>{u.email}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setDelId(u._id)}
+                        className="p-1.5 rounded-lg hover:bg-red-500/10" style={{ color: '#C94040' }}>
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded font-semibold"
+                        style={{ background: `${role.color}15`, color: role.color }}>
+                        {role.label || u.role}
+                      </span>
+                      <button onClick={() => toggleMut.mutate(u._id)}
+                        className="flex items-center gap-1 text-[10px] font-mono">
+                        {u.isActive !== false
+                          ? <><ToggleRight size={14} style={{ color: '#10B981' }} /><span style={{ color: '#10B981' }}>Active</span></>
+                          : <><ToggleLeft size={14} style={{ color: theme.muted }} /><span style={{ color: theme.muted }}>Inactive</span></>}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            {/* Desktop table view */}
+            <div className="overflow-x-auto hidden sm:block">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+                    {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider"
+                        style={{ color: theme.muted }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => {
+                    const role = ROLE_MAP[u.role] || { label: u.role, color: theme.muted }
+                    return (
+                      <tr key={u._id} className="hover:bg-white/[0.02] transition-colors"
+                        style={{ borderBottom: `1px solid ${theme.border}` }}>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                              style={{ background: `${role.color}25`, color: role.color }}>
+                              {u.name?.charAt(0)?.toUpperCase()}
+                            </div>
+                            <span className="text-xs font-semibold" style={{ color: theme.text }}>{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{u.email}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded font-semibold"
+                            style={{ background: `${role.color}15`, color: role.color }}>
+                            {role.label || u.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => toggleMut.mutate(u._id)}
+                            className="flex items-center gap-1 text-[10px] font-mono">
+                            {u.isActive !== false
+                              ? <><ToggleRight size={14} style={{ color: '#10B981' }} /><span style={{ color: '#10B981' }}>Active</span></>
+                              : <><ToggleLeft size={14} style={{ color: theme.muted }} /><span style={{ color: theme.muted }}>Inactive</span></>}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
+                          {u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button onClick={() => setDelId(u._id)}
+                            className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+                            style={{ color: '#C94040' }}>
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Pagination */}

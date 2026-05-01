@@ -55,9 +55,9 @@ export default function SuperAdminDashboard() {
         <div className="space-y-6">
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="font-display font-bold text-2xl" style={{ color: theme.text }}>
+                    <h1 className="font-display font-bold text-xl sm:text-2xl" style={{ color: theme.text }}>
                         Platform <span style={{ color: theme.accent }}>Overview</span>
                     </h1>
                     <p className="text-xs font-mono mt-1" style={{ color: theme.muted }}>
@@ -66,7 +66,7 @@ export default function SuperAdminDashboard() {
                 </div>
                 <button
                     onClick={() => navigate('/super-admin/tenants/create')}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-80 self-start sm:self-auto"
                     style={{ background: theme.accent, color: theme.bg }}
                 >
                     <Plus size={14} /> New Company
@@ -74,7 +74,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* KPI Cards — platform-wide */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <StatCard
                     label="Total Companies"
                     value={stats.tenants?.total || 0}
@@ -95,7 +95,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Secondary row */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                     { label: 'Active Companies', value: stats.tenants?.active || 0, color: '#62B849' },
                     { label: 'Suspended', value: stats.tenants?.suspended || 0, color: '#C94040' },
@@ -109,7 +109,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             {/* Charts + Top tenants */}
-            <div className="grid lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
                 {/* Revenue chart */}
                 <Card className="lg:col-span-2">
@@ -203,7 +203,49 @@ export default function SuperAdminDashboard() {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                        {/* Mobile card view */}
+                        <div className="sm:hidden divide-y" style={{ borderColor: theme.border }}>
+                            {recentTenants.map(t => (
+                                <div key={t._id} className="p-4 space-y-2 cursor-pointer hover:bg-white/[0.02]"
+                                    onClick={() => navigate(`/super-admin/tenants/${t._id}`)}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                                style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>
+                                                {t.orgName?.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold" style={{ color: theme.text }}>{t.orgName}</p>
+                                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded capitalize"
+                                                    style={{ background: `${theme.accent}12`, color: theme.accent }}>{t.planName || 'free'}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono" style={{ color: t.isActive ? '#62B849' : '#C94040' }}>
+                                            {t.isActive ? '● ACTIVE' : '● SUSP.'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-[11px]" style={{ color: theme.muted }}>
+                                            <div>{t.adminId?.name || '—'}</div>
+                                            <div className="font-mono text-[10px]">{t.adminId?.email}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                            <button onClick={() => navigate(`/super-admin/tenants/${t._id}`)}
+                                                className="p-1.5 rounded-lg hover:bg-white/10" style={{ color: theme.accent }}>
+                                                <Eye size={14} />
+                                            </button>
+                                            <button onClick={() => toggleMut.mutate(t._id)}
+                                                className="p-1.5 rounded-lg hover:bg-white/10"
+                                                style={{ color: t.isActive ? '#62B849' : theme.muted }}>
+                                                {t.isActive ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Desktop table view */}
+                        <table className="w-full hidden sm:table">
                             <thead>
                                 <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                                     {['Company', 'Admin', 'Plan', 'Domains', 'Clients', 'Status', 'Joined', 'Actions'].map(h => (

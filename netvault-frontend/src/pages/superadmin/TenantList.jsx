@@ -145,7 +145,7 @@ export default function TenantList() {
       />
 
       {/* Stats strip */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Total Companies', value: stats.tenants?.total || 0, color: theme.accent },
           { label: 'Active', value: stats.tenants?.active || 0, color: '#62B849' },
@@ -160,8 +160,8 @@ export default function TenantList() {
 
       {/* Search + View Toggle */}
       <Card className="p-4 flex flex-wrap items-center gap-3">
-        
-        
+
+
         {/* <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
           style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
           <Search size={13} style={{ color: theme.muted }} />
@@ -199,7 +199,51 @@ export default function TenantList() {
           action={<Button onClick={() => navigate('/super-admin/tenants/create')}><Plus size={14} /> Create Company</Button>} />
       ) : viewMode === 'list' ? (
         <Card>
-          <div className="overflow-x-auto">
+          {/* Mobile card view */}
+          <div className="sm:hidden divide-y" style={{ borderColor: theme.border }}>
+            {tenants.map(t => (
+              <div key={t._id} className="p-4 space-y-3 cursor-pointer hover:bg-white/[0.02]"
+                onClick={() => navigate(`/super-admin/tenants/${t._id}`)}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: theme.bg }}>{t.orgName?.charAt(0)}</div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: theme.text }}>{t.orgName}</p>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded capitalize"
+                        style={{ background: `${theme.accent}12`, color: theme.accent }}>{t.planName || 'free'}</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold" style={{ color: t.isActive ? '#62B849' : '#C94040' }}>
+                    {t.isActive ? '● ACTIVE' : '● SUSP.'}
+                  </span>
+                </div>
+                <div className="text-xs space-y-0.5" style={{ color: theme.muted }}>
+                  <div>{t.adminId?.name || '—'}</div>
+                  <div className="font-mono text-[10px]">{t.adminId?.email}</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs font-mono" style={{ color: theme.muted }}>
+                    <span><Globe size={11} className="inline mr-1" style={{ color: theme.accent }} />{t.domainCount ?? 0}/{t.maxDomains}</span>
+                    <span><Users size={11} className="inline mr-1" style={{ color: theme.accent }} />{t.clientCount ?? 0}/{t.maxClients}</span>
+                  </div>
+                  <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => navigate(`/super-admin/tenants/${t._id}`)}
+                      className="p-1.5 rounded-lg hover:bg-white/10" style={{ color: theme.accent }}><Eye size={14} /></button>
+                    <button onClick={() => toggleMut.mutate(t._id)}
+                      className="p-1.5 rounded-lg hover:bg-white/10"
+                      style={{ color: t.isActive ? '#62B849' : theme.muted }}>
+                      {t.isActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
+                    </button>
+                    <button onClick={e => openDelete(e, t)}
+                      className="p-1.5 rounded-lg hover:bg-red-500/10" style={{ color: '#C94040' }}><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop table view */}
+          <div className="overflow-x-auto hidden sm:block">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: `1px solid ${theme.border}` }}>

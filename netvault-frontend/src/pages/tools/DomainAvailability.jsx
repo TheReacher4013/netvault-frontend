@@ -139,20 +139,20 @@ export default function DomainAvailability() {
       <PageHeader title="Domain Availability" subtitle="Check availability and register via your registrar" />
 
       {/* Search */}
-      <Card className="p-5">
+      <Card className="p-4 sm:p-5">
         <div className="flex gap-2">
-          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl"
+          <div className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2.5 rounded-xl"
             style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
-            <Search size={14} style={{ color: theme.muted }} />
+            <Search size={14} style={{ color: theme.muted, flexShrink: 0 }} />
             <input value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && check()}
               placeholder="example.com"
               autoCapitalize="none" spellCheck="false"
-              className="flex-1 bg-transparent outline-none text-sm font-mono"
+              className="flex-1 min-w-0 bg-transparent outline-none text-sm font-mono"
               style={{ color: theme.text }} />
           </div>
-          <Button onClick={check} loading={loading}>Check</Button>
+          <Button onClick={check} loading={loading} className="flex-shrink-0">Check</Button>
         </div>
         <p className="text-[10px] mt-2" style={{ color: theme.muted }}>
           Uses DNS/RDAP lookup. No external API keys needed.

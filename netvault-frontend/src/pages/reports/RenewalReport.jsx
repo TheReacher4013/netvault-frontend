@@ -56,7 +56,7 @@ export default function RenewalReport() {
       />
 
       {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon: Globe, label: 'Domains', count: allDomains.length, color: theme.accent },
           { icon: Server, label: 'Hosting Plans', count: allHosting.length, color: '#F0A045' },

@@ -80,30 +80,36 @@ export default function ReferralPage() {
                         </div>
 
                         {/* Code display */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                        <div style={{ marginBottom: 16 }}>
                             <div style={{
                                 background: theme.surface, border: `2px dashed ${theme.accent}50`,
-                                borderRadius: 12, padding: '12px 24px',
-                                fontFamily: 'monospace', fontSize: 28, fontWeight: 900,
+                                borderRadius: 12, padding: '12px 16px',
+                                fontFamily: 'monospace', fontSize: 'clamp(18px, 5vw, 28px)', fontWeight: 900,
                                 color: theme.accent, letterSpacing: 4,
+                                overflowWrap: 'break-word', wordBreak: 'break-all',
+                                textAlign: 'center', marginBottom: 12,
                             }}>
                                 {referral?.referralCode || '—'}
                             </div>
-                            <button onClick={copyCode} style={{
-                                background: theme.accent, color: '#fff', border: 'none',
-                                borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 600,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                            }}>
-                                <Copy size={14} /> Copy Code
-                            </button>
-                            <button onClick={copyLink} style={{
-                                background: theme.surface, color: theme.text,
-                                border: `1px solid ${theme.border}`,
-                                borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 600,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                            }}>
-                                <Share2 size={14} /> Copy Link
-                            </button>
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                <button onClick={copyCode} style={{
+                                    flex: '1 1 120px',
+                                    background: theme.accent, color: '#fff', border: 'none',
+                                    borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 600,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                }}>
+                                    <Copy size={14} /> Copy Code
+                                </button>
+                                <button onClick={copyLink} style={{
+                                    flex: '1 1 120px',
+                                    background: theme.surface, color: theme.text,
+                                    border: `1px solid ${theme.border}`,
+                                    borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 600,
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                }}>
+                                    <Share2 size={14} /> Copy Link
+                                </button>
+                            </div>
                         </div>
 
                         {/* Referral link preview */}
@@ -118,7 +124,7 @@ export default function ReferralPage() {
                     </div>
 
                     {/* Rewards info */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 24 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
                         <div style={{
                             background: theme.surface, border: `1px solid ${theme.border}`,
                             borderRadius: 14, padding: 20,
