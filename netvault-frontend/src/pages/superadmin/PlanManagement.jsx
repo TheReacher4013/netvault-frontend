@@ -6,7 +6,7 @@ import { Button, Card, Loader, PageHeader, Modal, Input } from '../../components
 import { Shield, Plus, Edit3, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-// ── Plan Create / Edit Modal ──────────────────────────────────────────────
+
 function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, theme }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>

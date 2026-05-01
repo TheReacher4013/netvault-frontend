@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { notificationAPI } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { notificationAPI } from '../services/api';
+import { getNotificationRoute } from '../utils/notificationRoutes';
 
 const TYPE_COLORS = {
-  info:    { bg: '#EFF6FF', border: '#BFDBFE', dot: '#3B82F6', text: '#1D4ED8' },
-  success: { bg: '#F0FDF4', border: '#BBF7D0', dot: '#22C55E', text: '#15803D' },
-  warning: { bg: '#FFFBEB', border: '#FDE68A', dot: '#F59E0B', text: '#B45309' },
-  error:   { bg: '#FEF2F2', border: '#FECACA', dot: '#EF4444', text: '#B91C1C' },
+  info:    { bg: '#EFF6FF', border: '#BFDBFE', dot: '#3B82F6' },
+  success: { bg: '#F0FDF4', border: '#BBF7D0', dot: '#22C55E' },
+  warning: { bg: '#FFFBEB', border: '#FDE68A', dot: '#F59E0B' },
+  error:   { bg: '#FEF2F2', border: '#FECACA', dot: '#EF4444' },
 };
 
 const TYPE_ICONS = {
-  info:    'ℹ️',
-  success: '✅',
-  warning: '⚠️',
-  error:   '🚨',
+  info: 'ℹ️', success: '✅', warning: '⚠️', error: '🚨',
 };
 
 function timeAgo(date) {
@@ -24,22 +23,21 @@ function timeAgo(date) {
 }
 
 export default function NotificationBell({ userRole }) {
-  const [open, setOpen]               = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unread, setUnread]           = useState(0);
-  const [loading, setLoading]         = useState(false);
-  const dropRef                       = useRef(null);
+  const navigate = useNavigate();
+  const [open, setOpen]             = useState(false);
+  const [notifications, setNotifs]  = useState([]);
+  const [unread, setUnread]         = useState(0);
+  const [loading, setLoading]       = useState(false);
+  const dropRef                     = useRef(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [nRes, cRes] = await Promise.all([
-        notificationAPI.getAll(),
-        notificationAPI.getUnreadCount(),
-      ]);
-      setNotifications(nRes.data.notifications || []);
-      setUnread(cRes.data.count || 0);
-    } catch (_) { /* silently fail */ }
+      const res = await notificationAPI.getAll({ limit: 10 });
+      const notifs = res.data?.data?.notifications || [];
+      setNotifs(notifs);
+      setUnread(notifs.filter(n => !n.isRead).length);
+    } catch (_) {}
     finally { setLoading(false); }
   };
 
@@ -49,7 +47,6 @@ export default function NotificationBell({ userRole }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropRef.current && !dropRef.current.contains(e.target)) setOpen(false);
@@ -58,18 +55,44 @@ export default function NotificationBell({ userRole }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleMarkRead = async (id, e) => {
-    e.stopPropagation();
-    await notificationAPI.markRead(id);
-    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+  /**
+   * Click a notification row:
+   *  1. Mark read
+   *  2. Close dropdown
+   *  3. Navigate to the correct route for this notification
+   */
+  const handleClick = async (notif) => {
+    // Mark read optimistically
+    setNotifs(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n));
     setUnread(prev => Math.max(0, prev - 1));
+
+    // Persist mark-read (fire-and-forget)
+    notificationAPI.markRead(notif._id).catch(() => {});
+
+    setOpen(false);
+    const route = getNotificationRoute(notif, userRole);
+    navigate(route);
+  };
+
+  const handleMarkRead = async (notif, e) => {
+    e.stopPropagation();
+    setNotifs(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n));
+    setUnread(prev => Math.max(0, prev - 1));
+    notificationAPI.markRead(notif._id).catch(() => {});
   };
 
   const handleMarkAllRead = async () => {
     await notificationAPI.markAllRead();
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
     setUnread(0);
   };
+
+  // "View all" route depends on role
+  const viewAllRoute = userRole === 'client'
+    ? '/client-portal/alerts'
+    : userRole === 'superAdmin'
+      ? '/super-admin/notifications'
+      : '/notifications';
 
   return (
     <div style={{ position: 'relative' }} ref={dropRef}>
@@ -77,8 +100,9 @@ export default function NotificationBell({ userRole }) {
       <button
         onClick={() => setOpen(v => !v)}
         style={{
-          position: 'relative', background: open ? '#F3F4F6' : 'transparent',
-          border: '1px solid', borderColor: open ? '#D1D5DB' : 'transparent',
+          position: 'relative',
+          background: open ? '#F3F4F6' : 'transparent',
+          border: `1px solid ${open ? '#D1D5DB' : 'transparent'}`,
           borderRadius: '10px', padding: '8px 10px',
           cursor: 'pointer', transition: 'all .15s',
           fontSize: '18px', lineHeight: 1,
@@ -136,7 +160,6 @@ export default function NotificationBell({ userRole }) {
                   background: 'none', border: 'none', color: '#6366F1',
                   fontSize: '12px', cursor: 'pointer', fontWeight: 600,
                   padding: '4px 8px', borderRadius: '6px',
-                  transition: 'background .1s',
                 }}
               >
                 Mark all read
@@ -161,22 +184,29 @@ export default function NotificationBell({ userRole }) {
                 return (
                   <div
                     key={n._id}
+                    onClick={() => handleClick(n)}
                     style={{
                       display: 'flex', gap: '12px',
                       padding: '12px 16px',
                       background: n.isRead ? '#fff' : '#F8FAFF',
                       borderBottom: '1px solid #F3F4F6',
-                      cursor: 'default', transition: 'background .1s',
+                      cursor: 'pointer',
+                      transition: 'background .1s',
                     }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F3F4F6'}
+                    onMouseLeave={e => e.currentTarget.style.background = n.isRead ? '#fff' : '#F8FAFF'}
                   >
+                    {/* Icon */}
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '10px',
                       background: colors.bg, border: `1px solid ${colors.border}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: '16px', flexShrink: 0,
                     }}>
-                      {TYPE_ICONS[n.type]}
+                      {TYPE_ICONS[n.type] || '🔔'}
                     </div>
+
+                    {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
                         fontSize: '13px', fontWeight: n.isRead ? 500 : 700,
@@ -192,17 +222,26 @@ export default function NotificationBell({ userRole }) {
                         {timeAgo(n.createdAt)}
                       </div>
                     </div>
+
+                    {/* Unread dot + mark-read button */}
                     {!n.isRead && (
-                      <button
-                        onClick={(e) => handleMarkRead(n._id, e)}
-                        title="Mark as read"
-                        style={{
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          color: '#6366F1', fontSize: '16px', flexShrink: 0, padding: '0 2px',
-                        }}
-                      >
-                        ●
-                      </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                        <span style={{
+                          width: '8px', height: '8px', borderRadius: '50%',
+                          background: colors.dot, display: 'block',
+                        }} />
+                        <button
+                          onClick={(e) => handleMarkRead(n, e)}
+                          title="Mark as read"
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: '#9CA3AF', fontSize: '10px', padding: '2px',
+                            lineHeight: 1,
+                          }}
+                        >
+                          ✓
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -215,12 +254,15 @@ export default function NotificationBell({ userRole }) {
             <div style={{
               padding: '10px 16px', borderTop: '1px solid #F3F4F6', textAlign: 'center',
             }}>
-              <a
-                href="/notifications"
-                style={{ fontSize: '12px', color: '#6366F1', textDecoration: 'none', fontWeight: 600 }}
+              <button
+                onClick={() => { setOpen(false); navigate(viewAllRoute); }}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '12px', color: '#6366F1', fontWeight: 600,
+                }}
               >
                 View all notifications →
-              </a>
+              </button>
             </div>
           )}
         </div>

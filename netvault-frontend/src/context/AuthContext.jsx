@@ -86,7 +86,8 @@ export function AuthProvider({ children }) {
   }, [connectSocket])
 
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password })
+    const rememberMe = !!(localStorage.getItem('nv_remember_email'))
+    const res = await api.post('/auth/login', { email, password, rememberMe })
     const data = res.data.data
     if (data.requires2FA) return { requires2FA: true, tempToken: data.tempToken }
     return finalizeSession(data.token, data.user)
@@ -100,6 +101,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('nv_token')
+    localStorage.removeItem('nv_remember_email')//remove sathi takli ahe mi 
     setToken(null)
     setUser(null)
     disconnectSocket()

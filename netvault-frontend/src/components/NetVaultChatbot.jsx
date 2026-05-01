@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 
-// ── API call to backend ──────────────────────────────────────────────
 async function askAI(messages) {
   try {
     const res = await fetch("http://localhost:5000/api/chat", {

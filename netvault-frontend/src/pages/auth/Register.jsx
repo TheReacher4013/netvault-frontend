@@ -152,12 +152,34 @@ export default function Register() {
     if (!validateStep1()) return
     setOtpSending(true)
     try {
+      // Pre-check email availability before sending OTP
+      try {
+        await authService.checkEmail(form.email.trim().toLowerCase())
+      } catch (emailErr) {
+        if (emailErr.response?.status === 409) {
+          setErrors(prev => ({
+            ...prev,
+            email: 'This email is already registered. Please sign in or use a different email.',
+          }))
+          setOtpSending(false)
+          return
+        }
+      }
       await otpService.send(form.email.trim().toLowerCase())
       toast.success(`Verification code sent to ${form.email}`)
       setStep(2)
       setResendIn(60)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send verification code')
+      const msg = err.response?.data?.message || ''
+      // Show a specific, user-friendly error for duplicate emails
+      if (/already registered|email.*exist|duplicate/i.test(msg)) {
+        setErrors(prev => ({
+          ...prev,
+          email: 'This email is already registered. Please sign in or use a different email.',
+        }))
+      } else {
+        toast.error(msg || 'Failed to send verification code')
+      }
     } finally {
       setOtpSending(false)
     }
@@ -210,8 +232,19 @@ export default function Register() {
       setTimeout(() => { window.location.href = '/dashboard' }, 800)
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed'
-      toast.error(msg)
-      if (/verify your email/i.test(msg)) setStep(2)
+      if (/already registered|email.*exist|duplicate/i.test(msg)) {
+        toast.error('This email is already registered. Please sign in or use a different email.')
+        setStep(1)
+        setErrors(prev => ({
+          ...prev,
+          email: 'This email is already registered. Please sign in or use a different email.',
+        }))
+      } else if (/verify your email/i.test(msg)) {
+        toast.error(msg)
+        setStep(2)
+      } else {
+        toast.error(msg)
+      }
       setLoading(false)
     }
   }

@@ -4,14 +4,16 @@ import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 import { useAuth } from '../../context/AuthContext'
 import DashboardChatbot from '../DashboardChatbot'
+import AnnouncementPopup from './AnnouncementPopup'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { theme } = useAuth()
+  const { theme , user} = useAuth()
+  const isSuperAdmin = user?.role === 'superAdmin'
 
   return (
     <div className="min-h-screen flex" style={{ background: theme.bg, color: theme.text }}>
-      {/* Overlay mobile */}
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
@@ -28,8 +30,11 @@ export default function Layout() {
         </main>
       </div>
 
-      {/* Dashboard AI Help Chatbot */}
-      <DashboardChatbot />
+      {/* Announcement popup — shows once per session for non-superAdmin */}
+      <AnnouncementPopup />
+
+      {/* AI Help Chatbot */}
+     {!isSuperAdmin && <DashboardChatbot />}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { notificationService } from '../../services/api'
+import { alertService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, CardHeader, Loader, PageHeader, EmptyState } from '../../components/ui/index'
 import { Bell, CheckCheck, Trash2 } from 'lucide-react'
@@ -34,8 +34,8 @@ export default function AlertCenter() {
   const [perPageInput, setPerPageInput] = useState('10')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notifications-all', filter, page, perPage],
-    queryFn: () => notificationService.getAll({
+    queryKey: ['alerts', filter, page, perPage],
+    queryFn: () => alertService.getAll({
       page, limit: perPage,
       ...(filter === 'unread' ? { read: false } : filter === 'read' ? { read: true } : {}),
     }),
@@ -43,22 +43,22 @@ export default function AlertCenter() {
   })
 
   const markReadMut = useMutation({
-    mutationFn: (id) => notificationService.markRead(id),
-    onSuccess: () => qc.invalidateQueries(['notifications-all']),
+    mutationFn: (id) => alertService.markRead(id),
+    onSuccess: () => qc.invalidateQueries(['alerts']),
   })
   const markAllMut = useMutation({
-    mutationFn: () => notificationService.markAllRead(),
-    onSuccess: () => qc.invalidateQueries(['notifications-all']),
+    mutationFn: () => alertService.markAllRead(),
+    onSuccess: () => qc.invalidateQueries(['alerts']),
   })
   const deleteMut = useMutation({
-    mutationFn: (id) => notificationService.remove(id),
-    onSuccess: () => qc.invalidateQueries(['notifications-all']),
+    mutationFn: (id) => alertService.remove(id),
+    onSuccess: () => qc.invalidateQueries(['alerts']),
   })
 
-  const notifs = data?.data?.data?.notifications || []
+  const alerts = data?.data?.data?.notifications || []
   const unread = data?.data?.data?.unreadCount || 0
   const totalPages = data?.data?.data?.totalPages || 1
-  const totalDocs = data?.data?.data?.total || notifs.length
+  const totalDocs = data?.data?.data?.total || alerts.length
 
   if (isLoading) return <Loader text="Loading alerts..." />
 
@@ -66,7 +66,7 @@ export default function AlertCenter() {
     <div className="space-y-5 max-w-3xl">
       <PageHeader
         title="Alert Center"
-        subtitle={`${unread} unread notifications`}
+        subtitle={`${unread} unread system alert${unread !== 1 ? 's' : ''}`}
         actions={
           <Button variant="secondary" size="sm" onClick={() => markAllMut.mutate()} loading={markAllMut.isPending}>
             <CheckCheck size={13} />Mark all read
@@ -81,7 +81,7 @@ export default function AlertCenter() {
           { key: 'unread', label: `Unread (${unread})` },
           { key: 'read', label: 'Read' },
         ].map(tab => (
-          <button key={tab.key} onClick={() => setFilter(tab.key)}
+          <button key={tab.key} onClick={() => { setFilter(tab.key); setPage(1) }}
             className="px-4 py-1.5 rounded-xl text-xs font-semibold transition-all"
             style={{
               background: filter === tab.key ? theme.accent : `${theme.accent}10`,
@@ -94,16 +94,18 @@ export default function AlertCenter() {
       </div>
 
       <Card>
-        {notifs.length === 0 ? (
-          <EmptyState icon={Bell} title="No notifications" description="You're all caught up!" />
+        {alerts.length === 0 ? (
+          <EmptyState icon={Bell} title="No alerts" description="You're all caught up!" />
         ) : (
           <div className="divide-y" style={{ borderColor: theme.border }}>
-            {notifs.map((n, i) => {
+            {alerts.map((n, i) => {
               const srNo = (page - 1) * perPage + i + 1
+              // System alerts use boolean `read` field
+              const isRead = n.read === true
               return (
                 <div key={n._id}
                   className="flex items-start gap-3 px-4 py-4 transition-colors hover:bg-white/[0.02]"
-                  style={{ opacity: n.read ? 0.55 : 1 }}>
+                  style={{ opacity: isRead ? 0.55 : 1 }}>
 
                   {/* Sr No + Icon */}
                   <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -118,7 +120,7 @@ export default function AlertCenter() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-semibold leading-tight" style={{ color: theme.text }}>{n.title}</p>
-                      {!n.read && (
+                      {!isRead && (
                         <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
                           style={{ background: SEVERITY_COLORS[n.severity] || theme.accent }} />
                       )}
@@ -137,7 +139,7 @@ export default function AlertCenter() {
 
                   {/* Actions */}
                   <div className="flex gap-1 flex-shrink-0">
-                    {!n.read && (
+                    {!isRead && (
                       <button onClick={() => markReadMut.mutate(n._id)}
                         className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" style={{ color: theme.accent }}
                         title="Mark as read">
@@ -173,7 +175,7 @@ export default function AlertCenter() {
                 if (e.key === 'Enter') {
                   const v = parseInt(perPageInput, 10)
                   if (v > 0) { setPerPage(v); setPage(1) }
-                  else setPerPageInput(String(perPageInput))
+                  else setPerPageInput(String(perPage))
                 }
               }}
               className="w-14 text-center px-2 py-1 rounded-lg text-xs font-mono outline-none"

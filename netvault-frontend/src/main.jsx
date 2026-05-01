@@ -12,7 +12,6 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 })
 
-// Theme-aware toast surface — sits INSIDE ThemeProvider
 function ToastSurface() {
   const { theme } = useTheme()
   return (

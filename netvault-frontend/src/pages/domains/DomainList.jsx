@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Globe, Plus, Search, Trash2, Eye, Server, Filter } from 'lucide-react'
+import ImportExportBar from '../../components/ui/ImportExportBar'
 import { domainService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, StatusBadge, Loader, EmptyState, PageHeader, ConfirmDialog } from '../../components/ui/index'
@@ -44,6 +45,24 @@ export default function DomainList() {
     onError: (err) => toast.error(err.response?.data?.message || 'Delete failed'),
   })
 
+  const handleExport = async () => {
+    const res = await domainService.exportCSV()
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `domains-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImport = async (fd) => {
+    const res = await domainService.importEnhanced(fd)
+    qc.invalidateQueries(['domains'])
+    return res
+  }
+
+  const DOMAIN_TEMPLATE = 'name,registrar,registrationDate,expiryDate,autoRenewal,isLocal,localOnly,renewalCost,notes,tags'
+
   const domains = data?.data?.data?.docs || []
   const totalPages = data?.data?.data?.totalPages || 1
   const daysLeft = (expiry) => Math.ceil((new Date(expiry) - new Date()) / 86400000)
@@ -54,6 +73,15 @@ export default function DomainList() {
     <div className="space-y-4">
       <PageHeader title="Domains" subtitle={`${data?.data?.data?.totalDocs || 0} total domains`}
         actions={<Button onClick={() => navigate('/domains/add')}><Plus size={14} />Add Domain</Button>} />
+
+      {/* Import / Export */}
+      <ImportExportBar
+        onExport={handleExport}
+        onImport={handleImport}
+        templateHeaders={DOMAIN_TEMPLATE}
+        entityLabel="Domains"
+        theme={theme}
+      />
 
       {/* Filters */}
       <Card className="p-4 flex flex-wrap gap-3">

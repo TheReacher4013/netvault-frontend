@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 
-// ── Navigation map for all pages ────────────────────────────────────
 const NAV_MAP = [
     { keywords: ['domain', 'domains', 'expiry', 'dns', 'whois', 'registrar'], path: '/domains', label: 'Domain List' },
     { keywords: ['add domain', 'new domain', 'create domain'], path: '/domains/add', label: 'Add Domain' },

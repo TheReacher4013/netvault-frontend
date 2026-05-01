@@ -93,7 +93,7 @@ export default function AddDomain() {
   const [form, setForm] = useState({
     name: '', registrar: '', expiryDate: '',
     clientId: '', hostingId: '', parentDomainId: '',
-    autoRenewal: false, renewalCost: '', notes: '',
+    autoRenewal: false, isLocal: false, localOnly: false, renewalCost: '', notes: '',
     urlProtocol: 'https',
   })
 
@@ -327,6 +327,34 @@ export default function AddDomain() {
               </button>
             </div>
 
+            {/* ── Local Domain Options ── */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold block mb-0.5" style={{ color: theme.muted }}>
+                Local / Internal Domain
+              </span>
+              {[
+                { key: 'isLocal', label: 'Hosted Locally', desc: 'Domain runs on a local or internal server' },
+                { key: 'localOnly', label: 'Not Registered Externally', desc: 'No external registrar — purely internal use' },
+              ].map(opt => (
+                <button key={opt.key} type="button"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all"
+                  style={{
+                    background: form[opt.key] ? theme.accent + '10' : theme.accent + '05',
+                    border: '1px solid ' + (form[opt.key] ? theme.accent + '60' : theme.border),
+                  }}
+                  onClick={() => setForm(f => ({ ...f, [opt.key]: !f[opt.key] }))}>
+                  <div>
+                    <div className="text-xs font-bold" style={{ color: theme.text }}>{opt.label}</div>
+                    <div className="text-[10px] font-mono mt-0.5" style={{ color: theme.muted }}>{opt.desc}</div>
+                  </div>
+                  <div className="flex items-center gap-2" style={{ color: form[opt.key] ? theme.accent : theme.muted }}>
+                    {form[opt.key] ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                    <span className="text-xs font-mono font-bold">{form[opt.key] ? 'YES' : 'NO'}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
             <div>
               <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Notes (optional)</label>
               <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -356,6 +384,8 @@ export default function AddDomain() {
                 ['Hosting', selectedHosting ? `${selectedHosting.label} · ${selectedHosting.serverIP || 'no IP'}` : 'Not linked'],
                 ['Renewal Cost', form.renewalCost ? `₹${form.renewalCost}/yr` : '—'],
                 ['Auto Renewal', form.autoRenewal ? '✓ Enabled (auto-extends 7 days before expiry)' : 'Disabled'],
+                ['Local Domain', form.isLocal ? 'Yes (locally hosted)' : 'No'],
+                ['Local Only', form.localOnly ? 'Yes (not externally registered)' : 'No'],
                 ['Notes', form.notes || '—'],
               ].map(([label, value, mono], i, arr) => (
                 <div key={label} className="flex items-start justify-between px-4 py-3"

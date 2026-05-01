@@ -1,31 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Menu, Bell, User, Building2, LogOut, ChevronDown } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
-import { notificationService } from '../../services/api'
+import { alertService } from '../../services/api'
 import { formatDistanceToNow } from 'date-fns'
 import ThemeToggle from '../ui/ThemeToggle'
+import { getNotificationRoute } from '../../utils/notifcationRoutes'
 
 export default function Topbar({ onMenuClick }) {
   const { theme, user, logout } = useAuth()
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const [showNotifs, setShowNotifs] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const profileRef = useRef(null)
   const notifRef = useRef(null)
 
+  // Bell shows system alerts (source: 'system') via /api/alerts
   const { data: nData } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: () => notificationService.getAll({ limit: 10 }),
+    queryKey: ['topbar-alerts'],
+    queryFn: () => alertService.getAll({ limit: 10 }),
     refetchInterval: 30000,
   })
   const notifs = nData?.data?.data?.notifications || []
   const unread = nData?.data?.data?.unreadCount || 0
-
-  const handleMarkRead = async (id) => {
-    await notificationService.markRead(id)
-  }
 
   const handleLogout = () => {
     setShowProfile(false)
@@ -33,6 +32,7 @@ export default function Topbar({ onMenuClick }) {
     navigate('/login')
   }
 
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) setShowProfile(false)
@@ -43,14 +43,44 @@ export default function Topbar({ onMenuClick }) {
   }, [])
 
   const severityDot = (s) => ({
-    danger: '#F87171',
+    danger:  '#F87171',
     warning: '#FBBF24',
     success: '#4ADE80',
-    info: '#60A5FA',
+    info:    '#60A5FA',
   }[s] || '#6B7385')
 
+  /**
+   * Click a notification:
+   *  1. Mark it as read (system alert uses /api/alerts/:id/read)
+   *  2. Close the dropdown
+   *  3. Navigate to the correct page based on notification data
+   */
+  const handleNotifClick = async (notif) => {
+    // Mark read (fire-and-forget; don't block navigation)
+    alertService.markRead(notif._id).then(() => {
+      qc.invalidateQueries(['topbar-alerts'])
+    }).catch(() => {})
+
+    setShowNotifs(false)
+    const route = getNotificationRoute(notif, user?.role)
+    navigate(route)
+  }
+
+  const handleMarkAllRead = async () => {
+    await alertService.markAllRead()
+    qc.invalidateQueries(['topbar-alerts'])
+  }
+
   const isSuperAdmin = user?.role === 'superAdmin'
-  const isAdmin = user?.role === 'admin'
+  const isAdmin      = user?.role === 'admin'
+  const isClient     = user?.role === 'client'
+
+  // "View all" goes to the correct alerts page for this role
+  const viewAllRoute = isClient
+    ? '/client-portal/alerts'
+    : isSuperAdmin
+      ? '/super-admin/alerts'
+      : '/alerts'
 
   return (
     <header
@@ -76,7 +106,7 @@ export default function Topbar({ onMenuClick }) {
         {/* ── Light / Dark toggle ── */}
         <ThemeToggle />
 
-        {/* ── Notifications ── */}
+        {/* ── Notifications Bell ── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setShowNotifs(v => !v); setShowProfile(false) }}
@@ -99,42 +129,73 @@ export default function Topbar({ onMenuClick }) {
               className="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
               style={{ background: theme.surface, border: `1px solid ${theme.border}` }}
             >
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${theme.border}` }}>
-                <span className="text-sm font-semibold" style={{ color: theme.text }}>Notifications</span>
-                <button
-                  className="text-xs font-mono hover:underline"
-                  style={{ color: theme.accent }}
-                  onClick={() => notificationService.markAllRead()}
-                >
-                  Mark all read
-                </button>
+              {/* Header */}
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ borderBottom: `1px solid ${theme.border}` }}
+              >
+                <span className="text-sm font-semibold" style={{ color: theme.text }}>
+                  System Alerts
+                </span>
+                {unread > 0 && (
+                  <button
+                    className="text-xs font-mono hover:underline"
+                    style={{ color: theme.accent }}
+                    onClick={handleMarkAllRead}
+                  >
+                    Mark all read
+                  </button>
+                )}
               </div>
+
+              {/* List */}
               <div className="max-h-80 overflow-y-auto">
                 {notifs.length === 0 ? (
-                  <p className="text-xs text-center py-8" style={{ color: theme.muted }}>No notifications</p>
+                  <p className="text-xs text-center py-8" style={{ color: theme.muted }}>
+                    No alerts
+                  </p>
                 ) : notifs.map(n => (
                   <div
                     key={n._id}
-                    onClick={() => { handleMarkRead(n._id); setShowNotifs(false); navigate('/alerts') }}
+                    onClick={() => handleNotifClick(n)}
                     className="flex gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-white/5"
-                    style={{ borderBottom: `1px solid ${theme.border}`, opacity: n.read ? 0.5 : 1 }}
+                    style={{
+                      borderBottom: `1px solid ${theme.border}`,
+                      opacity: n.read ? 0.5 : 1,
+                    }}
                   >
-                    <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: severityDot(n.severity) }} />
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold leading-tight" style={{ color: theme.text }}>{n.title}</p>
-                      <p className="text-[11px] mt-0.5 leading-tight" style={{ color: theme.muted }}>{n.message}</p>
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                      style={{ background: severityDot(n.severity) }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold leading-tight" style={{ color: theme.text }}>
+                        {n.title}
+                      </p>
+                      <p className="text-[11px] mt-0.5 leading-tight" style={{ color: theme.muted }}>
+                        {n.message}
+                      </p>
                       <p className="text-[10px] mt-1 font-mono" style={{ color: theme.muted }}>
                         {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                       </p>
                     </div>
+                    {/* Unread indicator dot */}
+                    {!n.read && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5"
+                        style={{ background: theme.accent }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
+
+              {/* Footer */}
               <div className="px-4 py-2" style={{ borderTop: `1px solid ${theme.border}` }}>
                 <button
                   className="text-xs w-full text-center font-mono hover:underline"
                   style={{ color: theme.accent }}
-                  onClick={() => { setShowNotifs(false); navigate('/alerts') }}
+                  onClick={() => { setShowNotifs(false); navigate(viewAllRoute) }}
                 >
                   View all alerts →
                 </button>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { notificationAPI } from '../../services/api';
 
-const ROLES = ['superadmin', 'admin', 'manager', 'user'];
+const ROLES = ['superAdmin', 'admin', 'accountManager', 'technicalManager', 'billingManager', 'staff', 'client'];
 const TYPES = ['info', 'warning', 'success', 'error'];
 
 const TYPE_META = {
@@ -13,7 +13,7 @@ const TYPE_META = {
 
 const initialForm = {
   title: '', message: '', type: 'info',
-  targetRoles: [], isGlobal: false,
+  targetRoles: [], isGlobal: false, actionUrl: '',
 };
 
 function Badge({ type }) {
@@ -59,7 +59,7 @@ function Modal({ title, onClose, children }) {
 }
 
 export default function NotificationsPage({ userRole }) {
-  const isSuperAdmin = userRole === 'superadmin';
+  const isSuperAdmin = userRole === 'superAdmin' || userRole === 'superadmin';
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading]             = useState(true);
   const [showModal, setShowModal]         = useState(false);
@@ -67,12 +67,14 @@ export default function NotificationsPage({ userRole }) {
   const [form, setForm]                   = useState(initialForm);
   const [saving, setSaving]               = useState(false);
   const [filterType, setFilterType]       = useState('');
+  const [successMsg, setSuccessMsg]       = useState('');
 
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const res = await notificationAPI.getAll();
-      setNotifications(res.data.notifications || []);
+      const res = await notificationAPI.getAll({ limit: 100 });
+      // getAll returns broadcast notifications with per-user isRead already attached
+      setNotifications(res.data?.data?.notifications || []);
     } finally { setLoading(false); }
   };
 
@@ -80,7 +82,7 @@ export default function NotificationsPage({ userRole }) {
 
   const openCreate = () => { setForm(initialForm); setEditTarget(null); setShowModal(true); };
   const openEdit   = (n)  => {
-    setForm({ title: n.title, message: n.message, type: n.type, targetRoles: n.targetRoles || [], isGlobal: n.isGlobal });
+    setForm({ title: n.title, message: n.message, type: n.type, targetRoles: n.targetRoles || [], isGlobal: n.isGlobal, actionUrl: n.actionUrl || '' });
     setEditTarget(n._id);
     setShowModal(true);
   };
@@ -88,8 +90,13 @@ export default function NotificationsPage({ userRole }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (editTarget) await notificationAPI.update(editTarget, form);
-      else            await notificationAPI.create(form);
+      if (editTarget) {
+        await notificationAPI.update(editTarget, form);
+        setSuccessMsg('Notification updated successfully!');
+      } else {
+        await notificationAPI.create(form);
+        setSuccessMsg('Notification sent successfully!');
+      }
       setShowModal(false);
       fetchAll();
     } finally { setSaving(false); }
@@ -123,17 +130,54 @@ export default function NotificationsPage({ userRole }) {
 
   return (
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      {/* Success Popup */}
+      {successMsg && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '20px', padding: '40px 48px',
+            textAlign: 'center', maxWidth: '420px', width: '100%',
+            boxShadow: '0 24px 80px rgba(0,0,0,.2)',
+            animation: 'popIn .3s ease',
+          }}>
+            <div style={{
+              width: '72px', height: '72px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 20px', fontSize: '32px',
+            }}>🔔</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#111827' }}>Sent!</h2>
+            <p style={{ margin: '0 0 28px', fontSize: '14px', color: '#6B7280', lineHeight: 1.6 }}>
+              {successMsg}
+            </p>
+            <button onClick={() => setSuccessMsg('')} style={{
+              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+              color: '#fff', border: 'none', borderRadius: '10px',
+              padding: '12px 32px', fontSize: '14px', fontWeight: 700,
+              cursor: 'pointer', width: '100%',
+            }}>Got it</button>
+          </div>
+          <style>{`@keyframes popIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
+        </div>
+      )}
+
       {/* Page Header */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: '12px',
-        alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px',
+        alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px',
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#111827' }}>
-            🔔 Notifications
+            📣 Notifications
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6B7280' }}>
-            {isSuperAdmin ? 'Manage system notifications' : 'Your notifications'}
+            {isSuperAdmin
+              ? 'Send and manage notifications to specific roles'
+              : 'Notifications sent to you by Admin'
+            }
             {unreadCount > 0 && <span style={{ color: '#3B82F6', fontWeight: 600 }}> · {unreadCount} unread</span>}
           </p>
         </div>
@@ -156,6 +200,16 @@ export default function NotificationsPage({ userRole }) {
           )}
         </div>
       </div>
+
+      {/* Info banner for non-superAdmins */}
+      {!isSuperAdmin && (
+        <div style={{
+          background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px',
+          padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#1D4ED8',
+        }}>
+          ℹ️ These are messages broadcast to your role by the Admin. For system alerts (domain expiry, uptime, etc.) visit the <strong>Alert Center</strong>.
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -182,6 +236,12 @@ export default function NotificationsPage({ userRole }) {
         }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔕</div>
           <p style={{ color: '#6B7280', margin: 0, fontSize: '14px' }}>No notifications found</p>
+          {isSuperAdmin && (
+            <button onClick={openCreate} style={{
+              marginTop: '16px', background: '#6366F1', color: '#fff', border: 'none',
+              borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 700,
+            }}>Send First Notification</button>
+          )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -212,10 +272,15 @@ export default function NotificationsPage({ userRole }) {
                 <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.6 }}>{n.message}</div>
                 <div style={{ marginTop: '6px', fontSize: '11px', color: '#9CA3AF' }}>
                   {new Date(n.createdAt).toLocaleString()}
-                  {n.isGlobal && <span style={{ marginLeft: '8px', color: '#6B7280' }}>· Global</span>}
+                  {n.isGlobal && <span style={{ marginLeft: '8px', color: '#6B7280' }}>· 🌐 Global</span>}
                   {n.targetRoles?.length > 0 && (
                     <span style={{ marginLeft: '8px', color: '#6B7280' }}>
-                      · Roles: {n.targetRoles.join(', ')}
+                      · 👥 {n.targetRoles.join(', ')}
+                    </span>
+                  )}
+                  {n.createdBy?.name && (
+                    <span style={{ marginLeft: '8px', color: '#6B7280' }}>
+                      · by {n.createdBy.name}
                     </span>
                   )}
                 </div>
@@ -289,8 +354,19 @@ export default function NotificationsPage({ userRole }) {
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: 600 }}>
               <input type="checkbox" checked={form.isGlobal}
                 onChange={e => setForm(f => ({ ...f, isGlobal: e.target.checked }))} />
-              Send to all users (Global)
+              🌐 Send to all users (Global)
             </label>
+            <div>
+              <label style={inputStyle && { display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                Action URL <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span>
+              </label>
+              <input style={inputStyle} value={form.actionUrl}
+                onChange={e => setForm(f => ({ ...f, actionUrl: e.target.value }))}
+                placeholder="e.g. /billing, /domains" />
+            </div>
+            <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>
+              Leave roles empty + check Global to notify everyone.
+            </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px' }}>
               <button onClick={() => setShowModal(false)} style={{
                 background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px',
@@ -301,7 +377,7 @@ export default function NotificationsPage({ userRole }) {
                 borderRadius: '8px', padding: '10px 24px', cursor: saving ? 'not-allowed' : 'pointer',
                 fontSize: '13px', fontWeight: 700,
               }}>
-                {saving ? 'Saving…' : (editTarget ? 'Update' : 'Create')}
+                {saving ? 'Saving…' : (editTarget ? 'Update' : 'Send')}
               </button>
             </div>
           </div>

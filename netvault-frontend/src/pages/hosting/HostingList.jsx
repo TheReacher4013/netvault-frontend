@@ -5,6 +5,7 @@ import { hostingService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Card, StatusBadge, Loader, EmptyState, PageHeader, ConfirmDialog } from '../../components/ui/index'
 import { Server, Plus, Eye, Trash2, Search, Filter } from 'lucide-react'
+import ImportExportBar from '../../components/ui/ImportExportBar'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -41,6 +42,24 @@ export default function HostingList() {
     onError: err => toast.error(err.response?.data?.message || 'Delete failed'),
   })
 
+  const handleExport = async () => {
+    const res = await hostingService.exportCSV()
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hosting-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImport = async (fd) => {
+    const res = await hostingService.importCSV(fd)
+    qc.invalidateQueries(['hosting'])
+    return res
+  }
+
+  const HOSTING_TEMPLATE = 'label,planType,provider,serverIP,serverLocation,expiryDate,autoRenewal,isLocal,localOnly,renewalCost,sellingPrice,diskSpace,bandwidth,ram,notes'
+
   const list = data?.data?.data?.docs || []
   const totalPages = data?.data?.data?.totalPages || 1
   if (isLoading) return <Loader text="Loading hosting plans..." />
@@ -49,6 +68,15 @@ export default function HostingList() {
     <div className="space-y-5">
       <PageHeader title="Hosting" subtitle={`${data?.data?.data?.totalDocs || 0} total plans`}
         actions={<Button onClick={() => navigate('/hosting/add')}><Plus size={14} />Add Hosting</Button>} />
+
+      {/* Import / Export */}
+      <ImportExportBar
+        onExport={handleExport}
+        onImport={handleImport}
+        templateHeaders={HOSTING_TEMPLATE}
+        entityLabel="Hosting"
+        theme={theme}
+      />
 
       <Card className="p-4 flex flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-1 min-w-48 px-3 py-2 rounded-xl"
