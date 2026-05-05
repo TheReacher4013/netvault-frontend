@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Globe, Server, Users, FileText,
   BarChart2, Bell, Activity, Settings, LogOut,
   Shield, Building2, X, TrendingUp, Key, AlertTriangle,
-  Search, KeyRound, History, Clock, Tag, Gift, Megaphone
+  Search, KeyRound, History, Clock, Tag, Gift, Megaphone, Mail
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -54,6 +54,7 @@ const SUPER_ADMIN_NAV = {
     { to: '/super-admin/announcements', icon: Megaphone, label: 'Announcements' },
     { to: '/super-admin/notifications', icon: Bell, label: 'Notifications' },
     { to: '/super-admin/reports', icon: BarChart2, label: 'Reports' },
+    {to : '/super-admin/email-templates', icon:Mail, label:'Emails Templates'},
   ],
   settings: [
     { to: '/settings/profile', icon: Settings, label: 'Profile' },

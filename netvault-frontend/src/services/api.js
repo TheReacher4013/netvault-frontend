@@ -21,6 +21,7 @@ const PUBLIC_PATHS = [
   '/auth/register',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/coupons/validate',
 ]
 
 api.interceptors.response.use(
@@ -178,10 +179,10 @@ export const reportAPI = {
 
 export const reportDataAPI = {
   getSuperAdminSummary: () => api.get('/report-data/superadmin-summary'),
-  getAdminSummary:      () => api.get('/report-data/admin-summary'),
-  getEmailSchedule:     () => api.get('/report-data/email-schedule'),
-  saveEmailSchedule:    (d) => api.post('/report-data/email-schedule', d),
-  testEmailSchedule:    () => api.post('/report-data/email-schedule/test'),
+  getAdminSummary: () => api.get('/report-data/admin-summary'),
+  getEmailSchedule: () => api.get('/report-data/email-schedule'),
+  saveEmailSchedule: (d) => api.post('/report-data/email-schedule', d),
+  testEmailSchedule: () => api.post('/report-data/email-schedule/test'),
 }
 
 export const reportService = {
@@ -224,6 +225,11 @@ export const superAdminService = {
   getPendingTenants: () => api.get('/super-admin/pending-tenants'),
   approveTenant: (id) => api.post(`/super-admin/tenants/${id}/approve`),
   rejectTenant: (id, reason) => api.post(`/super-admin/tenants/${id}/reject`, { reason }),
+  getEmailTemplates: () => api.get('/super-admin/email-templates'),
+  getEmailTemplate: (id) => api.get(`/super-admin/email-templates/${id}`),
+  updateEmailTemplate: (id, data) => api.put(`/super-admin/email-templates/${id}`, data),
+  resetEmailTemplate: (id) => api.post(`/super-admin/email-templates/${id}/reset`),
+  sendEmailTemplatePreview: (id, data) => api.post(`/super-admin/email-templates/${id}/preview`, data),
 }
 
 export const inviteService = {

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { notificationAPI } from '../../services/api';
 
-const ROLES = ['superAdmin', 'admin', 'accountManager', 'technicalManager', 'billingManager', 'staff', 'client'];
+const ROLES = ['superAdmin', 'admin', 'staff', 'client'];
 const TYPES = ['info', 'warning', 'success', 'error'];
 
 const TYPE_META = {
-  info:    { color: '#3B82F6', bg: '#EFF6FF', label: 'Info' },
+  info: { color: '#3B82F6', bg: '#EFF6FF', label: 'Info' },
   success: { color: '#22C55E', bg: '#F0FDF4', label: 'Success' },
   warning: { color: '#F59E0B', bg: '#FFFBEB', label: 'Warning' },
-  error:   { color: '#EF4444', bg: '#FEF2F2', label: 'Error' },
+  error: { color: '#EF4444', bg: '#FEF2F2', label: 'Error' },
 };
 
 const initialForm = {
@@ -61,13 +61,13 @@ function Modal({ title, onClose, children }) {
 export default function NotificationsPage({ userRole }) {
   const isSuperAdmin = userRole === 'superAdmin' || userRole === 'superadmin';
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading]             = useState(true);
-  const [showModal, setShowModal]         = useState(false);
-  const [editTarget, setEditTarget]       = useState(null);
-  const [form, setForm]                   = useState(initialForm);
-  const [saving, setSaving]               = useState(false);
-  const [filterType, setFilterType]       = useState('');
-  const [successMsg, setSuccessMsg]       = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [form, setForm] = useState(initialForm);
+  const [saving, setSaving] = useState(false);
+  const [filterType, setFilterType] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const fetchAll = async () => {
     setLoading(true);
@@ -81,7 +81,7 @@ export default function NotificationsPage({ userRole }) {
   useEffect(() => { fetchAll(); }, []);
 
   const openCreate = () => { setForm(initialForm); setEditTarget(null); setShowModal(true); };
-  const openEdit   = (n)  => {
+  const openEdit = (n) => {
     setForm({ title: n.title, message: n.message, type: n.type, targetRoles: n.targetRoles || [], isGlobal: n.isGlobal, actionUrl: n.actionUrl || '' });
     setEditTarget(n._id);
     setShowModal(true);

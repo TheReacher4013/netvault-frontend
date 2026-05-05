@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { notificationAPI } from '../../services/api';
 
-const ROLES = ['superAdmin', 'admin', 'accountManager', 'technicalManager', 'billingManager', 'staff', 'client'];
+const ROLES = ['superAdmin', 'admin', 'staff', 'client'];
 const TYPES = ['info', 'warning', 'success', 'error'];
 
 const TYPE_META = {
-  info:    { color: '#3B82F6', bg: '#EFF6FF', label: 'Info' },
+  info: { color: '#3B82F6', bg: '#EFF6FF', label: 'Info' },
   success: { color: '#22C55E', bg: '#F0FDF4', label: 'Success' },
   warning: { color: '#F59E0B', bg: '#FFFBEB', label: 'Warning' },
-  error:   { color: '#EF4444', bg: '#FEF2F2', label: 'Error' },
+  error: { color: '#EF4444', bg: '#FEF2F2', label: 'Error' },
 };
 
 const initialForm = {

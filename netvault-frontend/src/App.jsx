@@ -50,6 +50,7 @@ import SuperAdminReferrals from './pages/superadmin/SuperAdminReferrals'
 import SuperAdminAnnouncements from './pages/superadmin/SuperAdminAnnouncements'
 import SuperAdminNotifications from './pages/superadmin/SuperAdminNotifications'
 import SuperAdminReports from './pages/superadmin/SuperAdminReports'
+import EmailTemplatesPage from './pages/superadmin/EmailTEmplatesPage'
 
 import PlanStatusGuard from './routes/PlanStatusGuard'
 
@@ -192,6 +193,10 @@ export default function App() {
           <Route path="/super-admin/reports"
             element={<RoleRoute roles={['superAdmin']}>
               <PageTransition><SuperAdminReports /></PageTransition></RoleRoute>} />
+          
+          <Route path="/super-admin/email-templates"
+            element={<RoleRoute roles={['superAdmin']}>
+              <PageTransition><EmailTemplatesPage /></PageTransition></RoleRoute>} />
 
           <Route path="/referral"
             element={<RoleRoute roles={['admin']}>

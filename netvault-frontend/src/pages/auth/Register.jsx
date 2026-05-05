@@ -368,10 +368,24 @@ export default function Register() {
                   <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
                     Phone <span className="font-normal opacity-60">(optional)</span>
                   </label>
+                  <div className='flex'>
+                    <select
+                    name ="countryCode"
+                    value={form.countryCode}
+                    onChange={handleChange}
+                    className='px-2 py-2 rounded-1-xl text-sm outline-none border-r style={inputStyle()}'
+                    >
+                      <option value = "+91">IN +91</option>
+                      <option value = "+1">US +1</option>
+                      <option value = "+44">GB +44</option>
+                      <option value = "+971">AE +971</option>
+
+                    </select>
                   <input type="tel" name="phone" value={form.phone} onChange={handleChange}
                     placeholder="9876543210" maxLength={10} inputMode="numeric"
                     className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
                     style={inputStyle(errors.phone)} />
+                  </div>
                   <div className="flex items-center justify-between mt-1">
                     <FieldError name="phone" />
                     <span className="text-[10px] font-mono ml-auto" style={{ color: theme.muted }}>
