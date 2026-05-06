@@ -5,10 +5,11 @@ import Topbar from './Topbar'
 import { useAuth } from '../../context/AuthContext'
 import DashboardChatbot from '../DashboardChatbot'
 import AnnouncementPopup from './AnnouncementPopup'
+import TrialBanner from './TrialBanner'
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { theme , user} = useAuth()
+  const { theme, user } = useAuth()
   const isSuperAdmin = user?.role === 'superAdmin'
 
   return (
@@ -25,6 +26,8 @@ export default function Layout() {
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-60">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        {/* Trial flash banner — shows every session during trial */}
+        {!isSuperAdmin && <TrialBanner />}
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <Outlet />
         </main>
@@ -34,7 +37,7 @@ export default function Layout() {
       <AnnouncementPopup />
 
       {/* AI Help Chatbot */}
-     {!isSuperAdmin && <DashboardChatbot />}
+      {!isSuperAdmin && <DashboardChatbot />}
     </div>
   )
 }

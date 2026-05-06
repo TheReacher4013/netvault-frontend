@@ -47,6 +47,7 @@ export default api
 export const authService = {
   login: (d) => api.post('/auth/login', d),
   register: (d) => api.post('/auth/register', d),
+  checkEmail: (email) => api.post('/auth/check-email', { email }),
   me: () => api.get('/auth/me'),
   forgotPassword: (d) => api.post('/auth/forgot-password', d),
   resetPassword: (token, d) => api.post(`/auth/reset-password/${token}`, d),
@@ -140,6 +141,7 @@ export const alertService = {
   markRead: (id) => api.patch(`/alerts/${id}/read`),
   markAllRead: () => api.patch('/alerts/read-all'),
   remove: (id) => api.delete(`/alerts/${id}`),
+  deleteAlert: (id) => api.delete(`/alerts/${id}`), // alias used by Topbar
 }
 
 // Broadcast notifications (admin-sent to roles) — managed in Notifications page
@@ -244,4 +246,14 @@ export const otpService = {
 
 export const tenantService = {
   getStatus: () => api.get('/tenant/status'),
+  getMe: () => api.get('/tenant/me'),
+  updateMe: (d) => api.put('/tenant/me', d),
+  uploadLogo: (formData) => api.post('/tenant/me/logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  subscribe: (d) => api.post('/tenant/subscribe', d),
+}
+
+export const couponService = {
+  validate: (code, orderAmount) => api.post('/coupons/validate', { code, orderAmount }),
 }

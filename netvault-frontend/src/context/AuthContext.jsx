@@ -19,8 +19,10 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('nv_token'))
   const [loading, setLoading] = useState(true)
   const [socket, setSocket] = useState(null)
+  const [trialInfo, setTrialInfo] = useState(null)
   const socketRef = useRef(null)
   const { theme, setRole } = useTheme()
+
   useEffect(() => {
     setRole(user?.role || 'admin')
   }, [user?.role, setRole])
@@ -36,25 +38,48 @@ export function AuthProvider({ children }) {
   const connectSocket = useCallback((u) => {
     if (!u?.tenantId) return
     disconnectSocket()
-
     const s = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
       auth: { token: localStorage.getItem('nv_token') },
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
     })
-
     s.on('connect', () => {
       const tid = u.tenantId?._id?.toString() || u.tenantId?.toString()
       s.emit('join-tenant', tid)
     })
-
     s.on('connect_error', (err) => console.warn('[Socket] Connection error:', err.message))
     s.on('server-down', (data) => toast.error(`🔴 Server Down: ${data.label}`, { duration: 8000 }))
     s.on('server-up', (data) => toast.success(`✅ Server Recovered: ${data.label}`, { duration: 5000 }))
-
     socketRef.current = s
     setSocket(s)
   }, [disconnectSocket])
+
+  // Fetch trial info separately
+  const fetchTrialInfo = useCallback(async () => {
+    try {
+      const res = await api.get('/tenant/status')
+      const d = res.data?.data
+      if (d) {
+        setTrialInfo({
+          isOnTrial: d.isOnTrial,
+          daysRemaining: d.trialDaysRemaining,
+          trialEndDate: d.trialEndDate,
+          trialExpired: d.planStatus === 'trial_expired',
+          planStatus: d.planStatus,
+          profileCompleted: d.profileCompleted,
+        })
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Refresh user from server (called after avatar/profile update)
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await api.get('/auth/me')
+      const u = res.data?.data?.user
+      if (u) setUser(u)
+    } catch { /* ignore */ }
+  }, [])
 
   useEffect(() => {
     if (token) {
@@ -63,6 +88,9 @@ export function AuthProvider({ children }) {
           const u = res.data.data.user
           setUser(u)
           connectSocket(u)
+          if (u.role !== 'superAdmin' && u.role !== 'client') {
+            fetchTrialInfo()
+          }
         })
         .catch(() => {
           localStorage.removeItem('nv_token')
@@ -77,11 +105,12 @@ export function AuthProvider({ children }) {
 
   useEffect(() => () => disconnectSocket(), [disconnectSocket])
 
-  const finalizeSession = useCallback((tk, u) => {
+  const finalizeSession = useCallback((tk, u, ti) => {
     localStorage.setItem('nv_token', tk)
     setToken(tk)
     setUser(u)
     connectSocket(u)
+    if (ti) setTrialInfo(ti)
     return u
   }, [connectSocket])
 
@@ -90,7 +119,7 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/login', { email, password, rememberMe })
     const data = res.data.data
     if (data.requires2FA) return { requires2FA: true, tempToken: data.tempToken }
-    return finalizeSession(data.token, data.user)
+    return finalizeSession(data.token, data.user, data.trialInfo)
   }
 
   const completeLoginWith2FA = async (tempToken, code) => {
@@ -101,17 +130,26 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('nv_token')
-    localStorage.removeItem('nv_remember_email')//remove sathi takli ahe mi 
+    localStorage.removeItem('nv_remember_email')
     setToken(null)
     setUser(null)
+    setTrialInfo(null)
     disconnectSocket()
   }, [disconnectSocket])
+
+  const refreshTrialInfo = useCallback(() => {
+    if (user && user.role !== 'superAdmin' && user.role !== 'client') {
+      fetchTrialInfo()
+    }
+  }, [user, fetchTrialInfo])
 
   return (
     <AuthContext.Provider value={{
       user, token, loading, theme,
       login, completeLoginWith2FA, logout,
       socket,
+      trialInfo, setTrialInfo, refreshTrialInfo,
+      refreshUser,
       isAuthenticated: !!token && !!user,
     }}>
       {children}

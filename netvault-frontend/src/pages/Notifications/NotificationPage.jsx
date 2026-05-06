@@ -1,388 +1,432 @@
-import React, { useState, useEffect } from 'react';
-import { notificationAPI } from '../../services/api';
+import React, { useState, useEffect } from 'react'
+import { notificationService } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
+import {
+  Bell, Info, CheckCircle, AlertTriangle, XCircle,
+  Plus, Check, CheckCheck, Trash2, Pencil, X, Loader2
+} from 'lucide-react'
 
-const ROLES = ['superAdmin', 'admin', 'staff', 'client'];
-const TYPES = ['info', 'warning', 'success', 'error'];
+const ROLES = ['superAdmin', 'admin', 'staff', 'client']
+const TYPES = ['info', 'warning', 'success', 'error']
 
 const TYPE_META = {
-  info: { color: '#3B82F6', bg: '#EFF6FF', label: 'Info' },
-  success: { color: '#22C55E', bg: '#F0FDF4', label: 'Success' },
-  warning: { color: '#F59E0B', bg: '#FFFBEB', label: 'Warning' },
-  error: { color: '#EF4444', bg: '#FEF2F2', label: 'Error' },
-};
-
-const initialForm = {
-  title: '', message: '', type: 'info',
-  targetRoles: [], isGlobal: false, actionUrl: '',
-};
-
-function Badge({ type }) {
-  const m = TYPE_META[type] || TYPE_META.info;
-  return (
-    <span style={{
-      background: m.bg, color: m.color,
-      border: `1px solid ${m.color}33`,
-      borderRadius: '6px', padding: '2px 10px',
-      fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.5px',
-    }}>
-      {m.label}
-    </span>
-  );
+  info: { color: '#3B82F6', bg: '#EFF6FF', border: '#BFDBFE', Icon: Info, label: 'Info' },
+  success: { color: '#22C55E', bg: '#F0FDF4', border: '#BBF7D0', Icon: CheckCircle, label: 'Success' },
+  warning: { color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A', Icon: AlertTriangle, label: 'Warning' },
+  error: { color: '#EF4444', bg: '#FEF2F2', border: '#FECACA', Icon: XCircle, label: 'Error' },
 }
 
+const initialForm = { title: '', message: '', type: 'info', targetRoles: [], isGlobal: false, actionUrl: '' }
+
+// ── Badge ─────────────────────────────────────────────────────────────────────
+function Badge({ type }) {
+  const m = TYPE_META[type] || TYPE_META.info
+  const { Icon } = m
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '4px',
+      background: m.bg, color: m.color, border: `1px solid ${m.border}`,
+      borderRadius: '6px', padding: '3px 10px',
+      fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px',
+      whiteSpace: 'nowrap', flexShrink: 0,
+    }}>
+      <Icon size={11} /> {m.label}
+    </span>
+  )
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children }) {
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
+      backdropFilter: 'blur(4px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       zIndex: 2000, padding: '16px',
     }}>
       <div style={{
-        background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '520px',
-        boxShadow: '0 20px 60px rgba(0,0,0,.18)',
+        background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '540px',
+        boxShadow: '0 24px 80px rgba(0,0,0,.2)',
         maxHeight: '90vh', overflowY: 'auto',
+        animation: 'popIn .25s cubic-bezier(.34,1.56,.64,1)',
       }}>
+        <style>{`@keyframes popIn { from { opacity:0;transform:scale(.94) } to { opacity:1;transform:scale(1) } }`}</style>
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px', borderBottom: '1px solid #F3F4F6',
+          padding: '20px 24px', borderBottom: '1px solid #F3F4F6', position: 'sticky', top: 0, background: '#fff', zIndex: 1,
         }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111827' }}>{title}</h3>
           <button onClick={onClose} style={{
             background: '#F3F4F6', border: 'none', borderRadius: '8px',
-            width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px',
-          }}>×</button>
+            width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}><X size={15} color="#6B7280" /></button>
         </div>
         <div style={{ padding: '24px' }}>{children}</div>
       </div>
     </div>
-  );
+  )
 }
 
-export default function NotificationsPage({ userRole }) {
-  const isSuperAdmin = userRole === 'superAdmin' || userRole === 'superadmin';
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [form, setForm] = useState(initialForm);
-  const [saving, setSaving] = useState(false);
-  const [filterType, setFilterType] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+// ── Field helpers ─────────────────────────────────────────────────────────────
+const inp = {
+  width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB',
+  borderRadius: '10px', fontSize: '13px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+}
+const lbl = { display: 'block', fontSize: '11px', fontWeight: 700, color: '#374151', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '.5px' }
+
+// ── Success popup ─────────────────────────────────────────────────────────────
+function SuccessPopup({ msg, onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 9999, padding: '16px',
+    }}>
+      <div style={{
+        background: '#fff', borderRadius: '24px', padding: '40px 48px',
+        textAlign: 'center', maxWidth: '380px', width: '100%',
+        boxShadow: '0 32px 100px rgba(0,0,0,.22)',
+        animation: 'popIn .3s cubic-bezier(.34,1.56,.64,1)',
+      }}>
+        <div style={{
+          width: '68px', height: '68px', borderRadius: '50%',
+          background: 'linear-gradient(135deg,#6366F1,#8B5CF6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 18px',
+        }}>
+          <Bell size={28} color="#fff" />
+        </div>
+        <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#111827' }}>Sent!</h2>
+        <p style={{ margin: '0 0 24px', fontSize: '13px', color: '#6B7280', lineHeight: 1.6 }}>{msg}</p>
+        <button onClick={onClose} style={{
+          background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff',
+          border: 'none', borderRadius: '12px', padding: '12px 32px',
+          fontSize: '13px', fontWeight: 700, cursor: 'pointer', width: '100%',
+        }}>Got it ✓</button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+export default function NotificationsPage() {
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'superAdmin'
+
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
+  const [form, setForm] = useState(initialForm)
+  const [saving, setSaving] = useState(false)
+  const [filterType, setFilterType] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   const fetchAll = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await notificationAPI.getAll({ limit: 100 });
-      // getAll returns broadcast notifications with per-user isRead already attached
-      setNotifications(res.data?.data?.notifications || []);
-    } finally { setLoading(false); }
-  };
+      const res = await notificationService.getAll({ limit: 100 })
+      setNotifications(res.data?.data?.notifications || [])
+    } finally { setLoading(false) }
+  }
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll() }, [])
 
-  const openCreate = () => { setForm(initialForm); setEditTarget(null); setShowModal(true); };
+  const openCreate = () => { setForm(initialForm); setEditTarget(null); setShowModal(true) }
   const openEdit = (n) => {
-    setForm({ title: n.title, message: n.message, type: n.type, targetRoles: n.targetRoles || [], isGlobal: n.isGlobal, actionUrl: n.actionUrl || '' });
-    setEditTarget(n._id);
-    setShowModal(true);
-  };
+    setForm({ title: n.title, message: n.message, type: n.type, targetRoles: n.targetRoles || [], isGlobal: n.isGlobal, actionUrl: n.actionUrl || '' })
+    setEditTarget(n._id); setShowModal(true)
+  }
 
   const handleSave = async () => {
-    setSaving(true);
+    setSaving(true)
     try {
       if (editTarget) {
-        await notificationAPI.update(editTarget, form);
-        setSuccessMsg('Notification updated successfully!');
+        await notificationService.update(editTarget, form)
+        setSuccessMsg('Notification updated successfully!')
       } else {
-        await notificationAPI.create(form);
-        setSuccessMsg('Notification sent successfully!');
+        await notificationService.create(form)
+        setSuccessMsg('Notification sent successfully!')
       }
-      setShowModal(false);
-      fetchAll();
-    } finally { setSaving(false); }
-  };
+      setShowModal(false); fetchAll()
+    } finally { setSaving(false) }
+  }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this notification?')) return;
-    await notificationAPI.remove(id);
-    setNotifications(prev => prev.filter(n => n._id !== id));
-  };
+    if (!window.confirm('Delete this notification?')) return
+    await notificationService.remove(id)
+    setNotifications(prev => prev.filter(n => n._id !== id))
+  }
 
   const handleMarkRead = async (id) => {
-    await notificationAPI.markRead(id);
-    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
-  };
+    await notificationService.markRead(id)
+    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n))
+  }
 
   const handleMarkAllRead = async () => {
-    await notificationAPI.markAllRead();
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-  };
+    await notificationService.markAllRead()
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+  }
 
-  const filtered = filterType ? notifications.filter(n => n.type === filterType) : notifications;
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-
-  const inputStyle = {
-    width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB',
-    borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-    fontFamily: 'inherit',
-  };
-  const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' };
+  const filtered = filterType ? notifications.filter(n => n.type === filterType) : notifications
+  const unreadCount = notifications.filter(n => !n.isRead).length
 
   return (
-    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      {/* Success Popup */}
-      {successMsg && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999, padding: '16px',
-        }}>
-          <div style={{
-            background: '#fff', borderRadius: '20px', padding: '40px 48px',
-            textAlign: 'center', maxWidth: '420px', width: '100%',
-            boxShadow: '0 24px 80px rgba(0,0,0,.2)',
-            animation: 'popIn .3s ease',
-          }}>
-            <div style={{
-              width: '72px', height: '72px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px', fontSize: '32px',
-            }}>🔔</div>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#111827' }}>Sent!</h2>
-            <p style={{ margin: '0 0 28px', fontSize: '14px', color: '#6B7280', lineHeight: 1.6 }}>
-              {successMsg}
-            </p>
-            <button onClick={() => setSuccessMsg('')} style={{
-              background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-              color: '#fff', border: 'none', borderRadius: '10px',
-              padding: '12px 32px', fontSize: '14px', fontWeight: 700,
-              cursor: 'pointer', width: '100%',
-            }}>Got it</button>
-          </div>
-          <style>{`@keyframes popIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }`}</style>
-        </div>
-      )}
+    <div style={{ padding: '24px', maxWidth: '860px', margin: '0 auto' }}>
 
-      {/* Page Header */}
-      <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: '12px',
-        alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px',
-      }}>
+      {successMsg && <SuccessPopup msg={successMsg} onClose={() => setSuccessMsg('')} />}
+
+      {/* ── Page header ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#111827' }}>
-            📣 Notifications
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Bell size={22} /> Notifications
           </h1>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6B7280' }}>
-            {isSuperAdmin
-              ? 'Send and manage notifications to specific roles'
-              : 'Notifications sent to you by Admin'
-            }
-            {unreadCount > 0 && <span style={{ color: '#3B82F6', fontWeight: 600 }}> · {unreadCount} unread</span>}
+            {isSuperAdmin ? 'Send and manage notifications to specific roles' : 'Notifications sent to you by Admin'}
+            {unreadCount > 0 && <span style={{ color: '#6366F1', fontWeight: 700 }}> · {unreadCount} unread</span>}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {unreadCount > 0 && (
             <button onClick={handleMarkAllRead} style={{
-              background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px',
-              padding: '8px 14px', fontSize: '13px', cursor: 'pointer', fontWeight: 600, color: '#374151',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '10px',
+              padding: '8px 14px', fontSize: '12px', cursor: 'pointer', fontWeight: 600, color: '#374151',
             }}>
-              ✓ Mark all read
+              <CheckCheck size={14} /> Mark all read
             </button>
           )}
           {isSuperAdmin && (
             <button onClick={openCreate} style={{
-              background: '#6366F1', color: '#fff', border: 'none', borderRadius: '8px',
-              padding: '8px 16px', fontSize: '13px', cursor: 'pointer', fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: '#6366F1', color: '#fff', border: 'none', borderRadius: '10px',
+              padding: '8px 16px', fontSize: '12px', cursor: 'pointer', fontWeight: 700,
             }}>
-              + New Notification
+              <Plus size={14} /> New Notification
             </button>
           )}
         </div>
       </div>
 
-      {/* Info banner for non-superAdmins */}
+      {/* Info banner */}
       {!isSuperAdmin && (
         <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
           background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px',
           padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#1D4ED8',
         }}>
-          ℹ️ These are messages broadcast to your role by the Admin. For system alerts (domain expiry, uptime, etc.) visit the <strong>Alert Center</strong>.
+          <Info size={14} />
+          These are messages broadcast to your role. For system alerts visit the <strong style={{ marginLeft: '3px' }}>Alert Center</strong>.
         </div>
       )}
 
-      {/* Filter Tabs */}
+      {/* Filter tabs */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        {['', ...TYPES].map(t => (
-          <button key={t} onClick={() => setFilterType(t)} style={{
-            background: filterType === t ? '#6366F1' : '#F9FAFB',
-            color: filterType === t ? '#fff' : '#374151',
-            border: `1px solid ${filterType === t ? '#6366F1' : '#E5E7EB'}`,
-            borderRadius: '8px', padding: '6px 14px', fontSize: '12px',
-            cursor: 'pointer', fontWeight: 600, transition: 'all .15s',
-          }}>
-            {t === '' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
-          </button>
-        ))}
+        {['', ...TYPES].map(t => {
+          const meta = TYPE_META[t]
+          const active = filterType === t
+          return (
+            <button key={t} onClick={() => setFilterType(t)} style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: active ? '#6366F1' : '#F9FAFB',
+              color: active ? '#fff' : '#374151',
+              border: `1px solid ${active ? '#6366F1' : '#E5E7EB'}`,
+              borderRadius: '8px', padding: '6px 14px', fontSize: '12px',
+              cursor: 'pointer', fontWeight: 600, transition: 'all .15s',
+            }}>
+              {t === '' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          )
+        })}
       </div>
 
-      {/* List */}
+      {/* ── List ── */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#9CA3AF', fontSize: '14px' }}>Loading…</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px', gap: '10px', color: '#9CA3AF' }}>
+          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+          <style>{`@keyframes spin { to { transform:rotate(360deg) } }`}</style>
+          <span style={{ fontSize: '13px' }}>Loading notifications…</span>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{
-          textAlign: 'center', padding: '60px', background: '#F9FAFB',
-          borderRadius: '14px', border: '2px dashed #E5E7EB',
+          textAlign: 'center', padding: '60px 24px',
+          background: '#F9FAFB', borderRadius: '16px', border: '2px dashed #E5E7EB',
         }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔕</div>
-          <p style={{ color: '#6B7280', margin: 0, fontSize: '14px' }}>No notifications found</p>
+          <Bell size={36} color="#D1D5DB" style={{ marginBottom: '12px' }} />
+          <p style={{ color: '#6B7280', margin: '0 0 16px', fontSize: '14px', fontWeight: 500 }}>No notifications found</p>
           {isSuperAdmin && (
             <button onClick={openCreate} style={{
-              marginTop: '16px', background: '#6366F1', color: '#fff', border: 'none',
-              borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 700,
+              background: '#6366F1', color: '#fff', border: 'none',
+              borderRadius: '10px', padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 700,
             }}>Send First Notification</button>
           )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {filtered.map(n => (
-            <div key={n._id} style={{
-              background: n.isRead ? '#fff' : '#F5F7FF',
-              border: `1px solid ${n.isRead ? '#E5E7EB' : '#C7D2FE'}`,
-              borderRadius: '12px', padding: '16px',
-              display: 'flex', gap: '14px', alignItems: 'flex-start',
-              transition: 'box-shadow .15s',
-            }}>
-              <div style={{ flexShrink: 0 }}>
-                <Badge type={n.type} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+          {filtered.map(n => {
+            const meta = TYPE_META[n.type] || TYPE_META.info
+            const { Icon } = meta
+            return (
+              <div key={n._id} style={{
+                background: n.isRead ? '#fff' : '#F5F7FF',
+                border: `1px solid ${n.isRead ? '#E5E7EB' : '#C7D2FE'}`,
+                borderRadius: '14px', padding: '16px 18px',
+                display: 'flex', gap: '14px', alignItems: 'flex-start',
+                transition: 'box-shadow .15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,.06)'}
+                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+              >
+                {/* Type icon */}
                 <div style={{
-                  fontWeight: n.isRead ? 500 : 700, fontSize: '14px',
-                  color: '#111827', marginBottom: '4px',
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  background: meta.bg, border: `1px solid ${meta.border}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
-                  {n.title}
+                  <Icon size={16} color={meta.color} />
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: n.isRead ? 500 : 700, fontSize: '14px', color: '#111827' }}>
+                      {n.title}
+                    </span>
+                    <Badge type={n.type} />
+                    {!n.isRead && (
+                      <span style={{
+                        background: '#6366F1', color: '#fff',
+                        borderRadius: '999px', fontSize: '10px', padding: '1px 8px', fontWeight: 700,
+                      }}>NEW</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.65 }}>{n.message}</div>
+                  <div style={{ marginTop: '7px', fontSize: '11px', color: '#9CA3AF', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <span>{new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    {n.isGlobal && <span>🌐 Global</span>}
+                    {n.targetRoles?.length > 0 && <span>👥 {n.targetRoles.join(', ')}</span>}
+                    {n.createdBy?.name && <span>by {n.createdBy.name}</span>}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                   {!n.isRead && (
-                    <span style={{
-                      marginLeft: '8px', background: '#6366F1', color: '#fff',
-                      borderRadius: '999px', fontSize: '10px', padding: '1px 7px', fontWeight: 700,
-                    }}>NEW</span>
+                    <button onClick={() => handleMarkRead(n._id)} title="Mark read" style={{
+                      background: '#EEF2FF', border: 'none', borderRadius: '8px',
+                      padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    }}><Check size={13} color="#6366F1" /></button>
                   )}
-                </div>
-                <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.6 }}>{n.message}</div>
-                <div style={{ marginTop: '6px', fontSize: '11px', color: '#9CA3AF' }}>
-                  {new Date(n.createdAt).toLocaleString()}
-                  {n.isGlobal && <span style={{ marginLeft: '8px', color: '#6B7280' }}>· 🌐 Global</span>}
-                  {n.targetRoles?.length > 0 && (
-                    <span style={{ marginLeft: '8px', color: '#6B7280' }}>
-                      · 👥 {n.targetRoles.join(', ')}
-                    </span>
-                  )}
-                  {n.createdBy?.name && (
-                    <span style={{ marginLeft: '8px', color: '#6B7280' }}>
-                      · by {n.createdBy.name}
-                    </span>
+                  {isSuperAdmin && (
+                    <>
+                      <button onClick={() => openEdit(n)} style={{
+                        background: '#F3F4F6', border: 'none', borderRadius: '8px',
+                        padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      }}><Pencil size={13} color="#374151" /></button>
+                      <button onClick={() => handleDelete(n._id)} style={{
+                        background: '#FEF2F2', border: 'none', borderRadius: '8px',
+                        padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                      }}><Trash2 size={13} color="#EF4444" /></button>
+                    </>
                   )}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                {!n.isRead && (
-                  <button onClick={() => handleMarkRead(n._id)} title="Mark read" style={{
-                    background: '#EEF2FF', border: 'none', borderRadius: '7px',
-                    padding: '6px 10px', cursor: 'pointer', fontSize: '13px', color: '#6366F1',
-                  }}>✓</button>
-                )}
-                {isSuperAdmin && (
-                  <>
-                    <button onClick={() => openEdit(n)} style={{
-                      background: '#F3F4F6', border: 'none', borderRadius: '7px',
-                      padding: '6px 10px', cursor: 'pointer', fontSize: '13px', color: '#374151',
-                    }}>✏️</button>
-                    <button onClick={() => handleDelete(n._id)} style={{
-                      background: '#FEF2F2', border: 'none', borderRadius: '7px',
-                      padding: '6px 10px', cursor: 'pointer', fontSize: '13px', color: '#EF4444',
-                    }}>🗑</button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
-      {/* Create/Edit Modal */}
+      {/* ── Create / Edit Modal ── */}
       {showModal && (
         <Modal title={editTarget ? 'Edit Notification' : 'New Notification'} onClose={() => setShowModal(false)}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
             <div>
-              <label style={labelStyle}>Title *</label>
-              <input style={inputStyle} value={form.title}
+              <label style={lbl}>Title *</label>
+              <input style={inp} value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Notification title" />
             </div>
+
             <div>
-              <label style={labelStyle}>Message *</label>
-              <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
+              <label style={lbl}>Message *</label>
+              <textarea style={{ ...inp, resize: 'vertical', minHeight: '80px' }}
                 value={form.message}
                 onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
                 placeholder="Notification message" />
             </div>
+
             <div>
-              <label style={labelStyle}>Type</label>
-              <select style={inputStyle} value={form.type}
-                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                {TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-              </select>
+              <label style={lbl}>Type</label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {TYPES.map(t => {
+                  const m = TYPE_META[t]
+                  const sel = form.type === t
+                  return (
+                    <button key={t} onClick={() => setForm(f => ({ ...f, type: t }))} style={{
+                      padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700,
+                      cursor: 'pointer', border: `1.5px solid ${sel ? m.color : '#E5E7EB'}`,
+                      background: sel ? m.bg : '#F9FAFB', color: sel ? m.color : '#6B7280',
+                      transition: 'all .15s',
+                    }}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
+
             <div>
-              <label style={labelStyle}>Target Roles (empty = use Global toggle)</label>
+              <label style={lbl}>Target Roles</label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
                 {ROLES.map(r => (
-                  <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '13px', color: '#374151' }}>
+                  <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: '#374151', userSelect: 'none' }}>
                     <input type="checkbox" checked={form.targetRoles.includes(r)}
                       onChange={e => setForm(f => ({
-                        ...f,
-                        targetRoles: e.target.checked
-                          ? [...f.targetRoles, r]
-                          : f.targetRoles.filter(x => x !== r),
+                        ...f, targetRoles: e.target.checked ? [...f.targetRoles, r] : f.targetRoles.filter(x => x !== r),
                       }))} />
                     {r}
                   </label>
                 ))}
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: 600 }}>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: 600, userSelect: 'none' }}>
               <input type="checkbox" checked={form.isGlobal}
                 onChange={e => setForm(f => ({ ...f, isGlobal: e.target.checked }))} />
               🌐 Send to all users (Global)
             </label>
+
             <div>
-              <label style={inputStyle && { display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                Action URL <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional)</span>
-              </label>
-              <input style={inputStyle} value={form.actionUrl}
+              <label style={lbl}>Action URL <span style={{ fontWeight: 400, color: '#9CA3AF', textTransform: 'none' }}>(optional)</span></label>
+              <input style={inp} value={form.actionUrl}
                 onChange={e => setForm(f => ({ ...f, actionUrl: e.target.value }))}
                 placeholder="e.g. /billing, /domains" />
             </div>
+
             <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>
               Leave roles empty + check Global to notify everyone.
             </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px' }}>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '4px' }}>
               <button onClick={() => setShowModal(false)} style={{
-                background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px',
-                padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+                background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '10px',
+                padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#374151',
               }}>Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.title || !form.message} style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
                 background: saving ? '#9CA3AF' : '#6366F1', color: '#fff', border: 'none',
-                borderRadius: '8px', padding: '10px 24px', cursor: saving ? 'not-allowed' : 'pointer',
-                fontSize: '13px', fontWeight: 700,
+                borderRadius: '10px', padding: '10px 24px',
+                cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700,
               }}>
-                {saving ? 'Saving…' : (editTarget ? 'Update' : 'Send')}
+                {saving && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
+                {saving ? 'Saving…' : editTarget ? 'Update' : 'Send'}
               </button>
             </div>
           </div>
         </Modal>
       )}
     </div>
-  );
+  )
 }

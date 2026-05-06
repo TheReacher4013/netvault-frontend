@@ -24,6 +24,64 @@ const ROLES = [
 
 const ROLE_MAP = Object.fromEntries(ROLES.map(r => [r.value, r]))
 
+/* ── User Card (replaces table row) ── */
+function UserCard({ u, onToggle, onDelete, theme }) {
+  const role = ROLE_MAP[u.role] || { label: u.role, color: theme.muted }
+  return (
+    <div style={{
+      background: theme.bg || '#fff',
+      border: `1px solid ${theme.border}`,
+      borderRadius: '14px',
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px',
+      transition: 'box-shadow .15s',
+    }}>
+      {/* Top row: avatar + name + role badge + actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '15px', fontWeight: 800, flexShrink: 0,
+          background: `${role.color}25`, color: role.color,
+        }}>
+          {u.name?.charAt(0)?.toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: '14px', color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</div>
+          <div style={{ fontSize: '11px', color: theme.muted, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email}</div>
+        </div>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+          <button onClick={() => onToggle(u._id)}
+            className="flex items-center gap-1"
+            style={{ background: u.isActive !== false ? '#ECFDF5' : `${theme.accent}10`, border: 'none', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, color: u.isActive !== false ? '#10B981' : theme.muted }}>
+            {u.isActive !== false ? <ToggleRight size={13} /> : <ToggleLeft size={13} />}
+            <span className="hidden sm:inline">{u.isActive !== false ? 'Active' : 'Inactive'}</span>
+          </button>
+          <button onClick={() => onDelete(u._id)}
+            style={{ background: '#FEF2F2', border: 'none', borderRadius: '8px', padding: '5px 8px', cursor: 'pointer', color: '#C94040' }}>
+            <Trash2 size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom row: role pill + joined date */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+        <span style={{
+          fontSize: '10px', fontFamily: 'monospace', fontWeight: 700,
+          padding: '3px 10px', borderRadius: '6px',
+          background: `${role.color}15`, color: role.color,
+        }}>{role.label || u.role}</span>
+        <span style={{ fontSize: '11px', color: theme.muted, fontFamily: 'monospace' }}>
+          Joined {u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function UserManagement() {
   const { theme } = useAuth()
   const qc = useQueryClient()
@@ -31,8 +89,9 @@ export default function UserManagement() {
   const [showRoles, setShowRoles] = useState(false)
   const [delId, setDelId] = useState(null)
   const [page, setPage] = useState(1)
-  const [perPage, setPerPage] = useState(10)
-  const [perPageInput, setPerPageInput] = useState('10')
+  const [perPage, setPerPage] = useState(12)
+  const [perPageInput, setPerPageInput] = useState('12')
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'staff', phone: '' })
 
   const { data, isLoading } = useQuery({ queryKey: ['users'], queryFn: userService.getAll })
@@ -56,20 +115,30 @@ export default function UserManagement() {
     onSuccess: () => { toast.success('User deleted'); qc.invalidateQueries(['users']); setDelId(null) },
   })
 
-  const allUsers = data?.data?.data?.users || []
+  const allUsers = (data?.data?.data?.users || []).filter(u =>
+    !search ||
+    u.name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
+  )
   const totalPages = Math.max(1, Math.ceil(allUsers.length / perPage))
   const users = allUsers.slice((page - 1) * perPage, page * perPage)
 
   if (isLoading) return <Loader text="Loading users..." />
 
-  const fieldStyle = { background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }
-  const selectCls = "w-full px-3 py-2.5 rounded-xl text-sm outline-none cursor-pointer"
-
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-5 max-w-5xl">
+      <style>{`
+        .um-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .um-search { padding: 8px 12px; border-radius: 10px; font-size: 13px; outline: none; width: 100%; max-width: 280px; }
+        @media (max-width: 480px) {
+          .um-grid { grid-template-columns: 1fr; }
+          .um-search { max-width: 100%; }
+        }
+      `}</style>
+
       <PageHeader title="User Management" subtitle="Manage team members and their roles"
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button onClick={() => setShowRoles(v => !v)}
               className="text-[10px] font-mono px-2.5 py-1.5 rounded-lg flex items-center gap-1"
               style={{ background: `${theme.accent}12`, color: theme.accent }}>
@@ -98,7 +167,6 @@ export default function UserManagement() {
                 <p className="text-[10px] leading-relaxed" style={{ color: theme.muted }}>{r.desc}</p>
               </div>
             ))}
-            {/* Client role */}
             <div className="p-3 rounded-xl"
               style={{ background: `${theme.accent}06`, border: `1px solid ${theme.border}` }}>
               <div className="flex items-center gap-2 mb-1">
@@ -114,65 +182,35 @@ export default function UserManagement() {
       )}
 
       <Card>
-        <CardHeader title={`Team Members (${allUsers.length})`} />
+        {/* Header with search */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', padding: '16px 20px', borderBottom: `1px solid ${theme.border}` }}>
+          <CardHeader title={`Team Members (${allUsers.length})`} />
+          <input
+            className="um-search"
+            style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }}
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+          />
+        </div>
+
         {users.length === 0 ? (
-          <div className="text-center py-12 text-sm" style={{ color: theme.muted }}>No team members yet</div>
+          <div className="text-center py-12 text-sm" style={{ color: theme.muted }}>
+            {search ? 'No users match your search' : 'No team members yet'}
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-wider"
-                      style={{ color: theme.muted }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => {
-                  const role = ROLE_MAP[u.role] || { label: u.role, color: theme.muted }
-                  return (
-                    <tr key={u._id} className="hover:bg-white/[0.02] transition-colors"
-                      style={{ borderBottom: `1px solid ${theme.border}` }}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                            style={{ background: `${role.color}25`, color: role.color }}>
-                            {u.name?.charAt(0)?.toUpperCase()}
-                          </div>
-                          <span className="text-xs font-semibold" style={{ color: theme.text }}>{u.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>{u.email}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded font-semibold"
-                          style={{ background: `${role.color}15`, color: role.color }}>
-                          {role.label || u.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => toggleMut.mutate(u._id)}
-                          className="flex items-center gap-1 text-[10px] font-mono">
-                          {u.isActive !== false
-                            ? <><ToggleRight size={14} style={{ color: '#10B981' }} /><span style={{ color: '#10B981' }}>Active</span></>
-                            : <><ToggleLeft size={14} style={{ color: theme.muted }} /><span style={{ color: theme.muted }}>Inactive</span></>}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 text-xs font-mono" style={{ color: theme.muted }}>
-                        {u.createdAt ? format(new Date(u.createdAt), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button onClick={() => setDelId(u._id)}
-                          className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
-                          style={{ color: '#C94040' }}>
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+          <div style={{ padding: '16px 20px' }}>
+            <div className="um-grid">
+              {users.map(u => (
+                <UserCard
+                  key={u._id}
+                  u={u}
+                  theme={theme}
+                  onToggle={(id) => toggleMut.mutate(id)}
+                  onDelete={(id) => setDelId(id)}
+                />
+              ))}
+            </div>
           </div>
         )}
 
@@ -190,7 +228,7 @@ export default function UserManagement() {
             <span className="text-[11px] font-mono" style={{ color: theme.muted }}>per page</span>
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                 className="px-2.5 py-1 rounded-lg text-xs font-mono disabled:opacity-30"
                 style={{ background: `${theme.accent}10`, color: theme.muted }}>‹</button>
@@ -218,7 +256,6 @@ export default function UserManagement() {
           <Input label="Password *" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 8 characters" />
           <Input label="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+91 9876543210" />
 
-          {/* Role selector — compact grid */}
           <div>
             <label className="text-xs font-semibold block mb-2" style={{ color: theme.muted }}>Role *</label>
             <div className="grid grid-cols-2 gap-2">
@@ -230,16 +267,11 @@ export default function UserManagement() {
                     background: form.role === r.value ? `${r.color}15` : `${theme.accent}04`,
                     border: `1.5px solid ${form.role === r.value ? r.color : theme.border}`,
                   }}>
-                  <span className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ background: r.color }} />
-                  <span className="text-xs font-semibold"
-                    style={{ color: form.role === r.value ? r.color : theme.text }}>
-                    {r.label}
-                  </span>
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: r.color }} />
+                  <span className="text-xs font-semibold" style={{ color: form.role === r.value ? r.color : theme.text }}>{r.label}</span>
                 </button>
               ))}
             </div>
-            {/* Show desc of selected role */}
             {form.role && (
               <p className="text-[10px] mt-2 px-1" style={{ color: theme.muted }}>
                 {ROLES.find(r => r.value === form.role)?.desc}

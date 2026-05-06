@@ -4,9 +4,11 @@ import { Menu, Bell, User, Building2, LogOut, ChevronDown } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../context/AuthContext'
 import { alertService } from '../../services/api'
+import api from '../../services/api'
 import { formatDistanceToNow } from 'date-fns'
 import ThemeToggle from '../ui/ThemeToggle'
 import { getNotificationRoute } from '../../utils/notifcationRoutes'
+import toast from 'react-hot-toast'
 
 export default function Topbar({ onMenuClick }) {
   const { theme, user, logout } = useAuth()
@@ -16,6 +18,17 @@ export default function Topbar({ onMenuClick }) {
   const [showProfile, setShowProfile] = useState(false)
   const profileRef = useRef(null)
   const notifRef = useRef(null)
+
+  const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')
+
+  const getAvatarUrl = (av) => {
+    if (!av) return null
+    if (av.startsWith('http')) return av
+    return `${API_BASE}${av}`
+  }
+
+  const avatarUrl = getAvatarUrl(user?.avatar)
+  const initials = user?.name?.charAt(0).toUpperCase() || '?'
 
   // Bell shows system alerts (source: 'system') via /api/alerts
   const { data: nData } = useQuery({
@@ -43,26 +56,61 @@ export default function Topbar({ onMenuClick }) {
   }, [])
 
   const severityDot = (s) => ({
-    danger:  '#F87171',
+    danger: '#F87171',
     warning: '#FBBF24',
     success: '#4ADE80',
-    info:    '#60A5FA',
+    info: '#60A5FA',
   }[s] || '#6B7385')
 
   /**
    * Click a notification:
-   *  1. Mark it as read (system alert uses /api/alerts/:id/read)
+   *  1. Mark it as read
    *  2. Close the dropdown
-   *  3. Navigate to the correct page based on notification data
+   *  3. Check if the linked resource (hosting/domain) still exists
+   *     - If deleted (404): remove stale alert + show toast, don't navigate
+   *     - If exists: navigate to the correct page
    */
   const handleNotifClick = async (notif) => {
-    // Mark read (fire-and-forget; don't block navigation)
+    // Mark read (fire-and-forget)
     alertService.markRead(notif._id).then(() => {
       qc.invalidateQueries(['topbar-alerts'])
-    }).catch(() => {})
+    }).catch(() => { })
 
     setShowNotifs(false)
     const route = getNotificationRoute(notif, user?.role)
+
+    // If notification points to a specific hosting/domain, verify it still exists
+    if (notif.entityId && notif.entityType) {
+      const entityUrl =
+        notif.entityType === 'hosting' ? `/hosting/${notif.entityId}` :
+          notif.entityType === 'domain' ? `/domains/${notif.entityId}` :
+            null
+
+      if (entityUrl) {
+        try {
+          await api.get(entityUrl)
+          // Resource exists — navigate normally
+          navigate(route)
+        } catch (err) {
+          if (err?.response?.status === 404) {
+            // Resource was deleted — silently remove this stale alert
+            alertService.deleteAlert(notif._id).catch(() => { })
+            qc.invalidateQueries(['topbar-alerts'])
+            toast.error(
+              notif.entityType === 'hosting'
+                ? 'This hosting was deleted — alert removed.'
+                : 'This domain was deleted — alert removed.',
+              { duration: 4000 }
+            )
+          } else {
+            // Some other error — navigate anyway
+            navigate(route)
+          }
+        }
+        return
+      }
+    }
+
     navigate(route)
   }
 
@@ -72,8 +120,8 @@ export default function Topbar({ onMenuClick }) {
   }
 
   const isSuperAdmin = user?.role === 'superAdmin'
-  const isAdmin      = user?.role === 'admin'
-  const isClient     = user?.role === 'client'
+  const isAdmin = user?.role === 'admin'
+  const isClient = user?.role === 'client'
 
   // "View all" goes to the correct alerts page for this role
   const viewAllRoute = isClient
@@ -212,10 +260,18 @@ export default function Topbar({ onMenuClick }) {
             style={{ border: `1px solid ${showProfile ? theme.accent : theme.border}` }}
           >
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold overflow-hidden flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}
             >
-              {user?.name?.charAt(0).toUpperCase()}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={user?.name}
+                  className="w-full h-full object-cover"
+                  onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                />
+              ) : null}
+              <span style={{ display: avatarUrl ? 'none' : 'flex' }}>{initials}</span>
             </div>
             <div className="hidden sm:block text-left">
               <p className="text-xs font-semibold leading-none" style={{ color: theme.text }}>{user?.name?.split(' ')[0]}</p>
@@ -236,10 +292,18 @@ export default function Topbar({ onMenuClick }) {
               <div className="px-4 py-3" style={{ borderBottom: `1px solid ${theme.border}` }}>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 overflow-hidden"
                     style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}
                   >
-                    {user?.name?.charAt(0).toUpperCase()}
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={user?.name}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                      />
+                    ) : null}
+                    <span style={{ display: avatarUrl ? 'none' : 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>{initials}</span>
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold truncate" style={{ color: theme.text }}>{user?.name}</p>

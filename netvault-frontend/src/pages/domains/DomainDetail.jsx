@@ -466,9 +466,10 @@ export default function DomainDetail() {
 
   const scrollToDNS = () => dnsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: fetchError } = useQuery({
     queryKey: ['domain', id],
     queryFn: () => domainService.getOne(id),
+    retry: false,
   })
 
   useEffect(() => {
@@ -497,12 +498,34 @@ export default function DomainDetail() {
     },
   })
 
-  const domain = data?.data?.data?.domain
   const clients = clientsData?.data?.data?.docs || []
   const hostingList = hostingData?.data?.data?.docs || []
 
   if (isLoading) return <Loader text="Loading domain..." />
-  if (!domain) return <div className="text-center py-20" style={{ color: theme.muted }}>Domain not found</div>
+
+  if (fetchError || !data?.data?.data?.domain) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+          style={{ background: 'rgba(239,68,68,0.1)' }}>
+          <AlertTriangle size={28} style={{ color: '#EF4444' }} />
+        </div>
+        <div className="text-center">
+          <p className="font-bold text-lg mb-1" style={{ color: theme.text }}>Domain Not Found</p>
+          <p className="text-sm mb-4" style={{ color: theme.muted }}>
+            This domain may have been deleted. The related alerts have been cleared.
+          </p>
+          <button onClick={() => navigate('/domains')}
+            className="px-4 py-2 rounded-xl text-sm font-semibold"
+            style={{ background: theme.accent, color: '#fff' }}>
+            Back to Domains
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const domain = data?.data?.data?.domain
 
   const daysLeft = Math.ceil((new Date(domain.expiryDate) - new Date()) / 86_400_000)
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))

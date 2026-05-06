@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { superAdminService } from '../../services/api'
@@ -8,6 +9,25 @@ import toast from 'react-hot-toast'
 
 
 function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, theme }) {
+  const ALL_COUNTRIES = [
+    { code: 'IN', name: '🇮🇳 India' }, { code: 'US', name: '🇺🇸 United States' },
+    { code: 'GB', name: '🇬🇧 United Kingdom' }, { code: 'AU', name: '🇦🇺 Australia' },
+    { code: 'CA', name: '🇨🇦 Canada' }, { code: 'DE', name: '🇩🇪 Germany' },
+    { code: 'FR', name: '🇫🇷 France' }, { code: 'AE', name: '🇦🇪 UAE' },
+    { code: 'SG', name: '🇸🇬 Singapore' }, { code: 'NZ', name: '🇳🇿 New Zealand' },
+    { code: 'BD', name: '🇧🇩 Bangladesh' }, { code: 'PK', name: '🇵🇰 Pakistan' },
+    { code: 'NP', name: '🇳🇵 Nepal' }, { code: 'LK', name: '🇱🇰 Sri Lanka' },
+  ]
+  const selectedCountries = form.availableCountries || []
+  const toggleCountry = (code) => {
+    setForm(f => ({
+      ...f,
+      availableCountries: selectedCountries.includes(code)
+        ? selectedCountries.filter(c => c !== code)
+        : [...selectedCountries, code],
+    }))
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <div className="space-y-3">
@@ -15,25 +35,62 @@ function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, the
           <Input label="Plan Key" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="pro" />
           <Input label="Display Name" value={form.displayName} onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))} placeholder="Pro" />
         </div>
-        <Input label="Price (₹/Month)" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} />
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Price /Month" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} />
+          <div>
+            <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Currency</label>
+            <select value={form.currency || 'INR'} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
+              className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none"
+              style={{ background: `${theme.accent}08`, borderColor: theme.border, color: theme.text }}>
+              {['INR', 'USD', 'GBP', 'AUD', 'CAD', 'EUR', 'AED', 'SGD', 'NZD', 'BDT', 'PKR', 'NPR', 'LKR'].map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Input label="Max Domains" type="number" value={form.maxDomains} onChange={e => setForm(f => ({ ...f, maxDomains: +e.target.value }))} />
           <Input label="Max Clients" type="number" value={form.maxClients} onChange={e => setForm(f => ({ ...f, maxClients: +e.target.value }))} />
           <Input label="Max Staff" type="number" value={form.maxStaff} onChange={e => setForm(f => ({ ...f, maxStaff: +e.target.value }))} />
           <Input label="Max Hosting" type="number" value={form.maxHosting} onChange={e => setForm(f => ({ ...f, maxHosting: +e.target.value }))} />
         </div>
+        <Input label="Trial Days" type="number" value={form.trialDays ?? 7} onChange={e => setForm(f => ({ ...f, trialDays: +e.target.value }))} />
         <div>
-          <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>
-            Features (comma separated)
-          </label>
+          <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Features (comma separated)</label>
           <textarea
             value={form.features}
             onChange={e => setForm(f => ({ ...f, features: e.target.value }))}
             rows={3}
             placeholder="Feature 1, Feature 2, Feature 3"
             className="w-full px-3 py-2.5 rounded-xl text-xs outline-none resize-none"
-            style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text, fontFamily: "'DM Sans',sans-serif" }}
+            style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}`, color: theme.text }}
           />
+        </div>
+        <div>
+          <label className="text-xs font-semibold block mb-2" style={{ color: theme.muted }}>
+            Available Countries <span className="font-normal opacity-60">(leave empty = all countries)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {ALL_COUNTRIES.map(c => {
+              const selected = selectedCountries.includes(c.code)
+              return (
+                <button key={c.code} type="button" onClick={() => toggleCountry(c.code)}
+                  className="px-2 py-1 rounded-lg text-xs transition-all"
+                  style={{
+                    background: selected ? `${theme.accent}22` : 'transparent',
+                    color: selected ? theme.accent : theme.muted,
+                    border: `1px solid ${selected ? theme.accent : theme.border}`,
+                  }}>
+                  {c.name}
+                </button>
+              )
+            })}
+          </div>
+          {selectedCountries.length > 0 && (
+            <p className="text-[10px] mt-1.5" style={{ color: theme.muted }}>
+              Plan shown only to: {selectedCountries.join(', ')}
+            </p>
+          )}
         </div>
         <div className="flex gap-3 pt-2">
           <Button loading={loading} onClick={onSubmit}>Save Plan</Button>
@@ -103,7 +160,7 @@ export default function PlanManagement() {
   })
 
   const createMut = useMutation({
-    mutationFn: d => superAdminService.createPlan({ ...d, features: d.features.split(',').map(f => f.trim()).filter(Boolean) }),
+    mutationFn: d => superAdminService.createPlan({ ...d, features: d.features.split(',').map(f => f.trim()).filter(Boolean), availableCountries: d.availableCountries || [] }),
     onSuccess: () => {
       toast.success('Plan created successfully.')
       qc.invalidateQueries(['sa-plans'])
@@ -113,7 +170,7 @@ export default function PlanManagement() {
   })
 
   const updateMut = useMutation({
-    mutationFn: ({ id, d }) => superAdminService.updatePlan(id, { ...d, features: d.features.split(',').map(f => f.trim()).filter(Boolean) }),
+    mutationFn: ({ id, d }) => superAdminService.updatePlan(id, { ...d, features: d.features.split(',').map(f => f.trim()).filter(Boolean), availableCountries: d.availableCountries || [] }),
     onSuccess: () => {
       toast.success('Plan updated successfully.')
       qc.invalidateQueries(['sa-plans'])
@@ -134,7 +191,7 @@ export default function PlanManagement() {
     },
   })
 
-  const BLANK_FORM = { name: '', displayName: '', price: 0, maxDomains: 20, maxClients: 10, maxStaff: 3, maxHosting: 10, features: '' }
+  const BLANK_FORM = { name: '', displayName: '', price: 0, currency: 'INR', maxDomains: 20, maxClients: 10, maxStaff: 3, maxHosting: 10, features: '', trialDays: 7, availableCountries: [] }
 
   const plans = data?.data?.data?.plans || []
   if (isLoading) return <Loader text="Loading plans..." />
@@ -206,7 +263,7 @@ export default function PlanManagement() {
               <button
                 onClick={() => {
                   setEditPlan(plan._id)
-                  setForm({ ...plan, features: plan.features?.join(', ') || '' })
+                  setForm({ ...plan, features: plan.features?.join(', ') || '', availableCountries: plan.availableCountries || [], trialDays: plan.trialDays ?? 7 })
                 }}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-80 cursor-pointer mb-2"
                 style={{ background: `${theme.accent}10`, color: theme.accent, border: `1px solid ${theme.border}` }}
