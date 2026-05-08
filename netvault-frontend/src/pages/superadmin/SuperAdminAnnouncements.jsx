@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect } from 'react';
 import { announcementAPI } from '../../services/api';
 
@@ -306,11 +303,11 @@ export default function SuperAdminAnnouncements() {
 
       {/* Filters */}
       <div className="ann-filters">
-        <select className="ann-filter-sel" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+        <select className="" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All Status</option>
           {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
         </select>
-        <select className="ann-filter-sel" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+        <select className="" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
           <option value="">All Priority</option>
           {PRIORITIES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
         </select>

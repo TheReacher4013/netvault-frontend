@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import ThemeToggle from '../../components/ui/ThemeToggle'
 import {
-    Clock, XCircle, CheckCircle2, LogOut, Mail, RefreshCw,
+    XCircle, CheckCircle2, LogOut, Mail, RefreshCw,
 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
@@ -24,15 +24,15 @@ export default function PendingApproval() {
                 setTimeout(() => { window.location.href = '/dashboard' }, 1200)
             }
         } catch (err) {
-         
+
         }
     }
 
     useEffect(() => {
         fetchStatus()
-        const id = setInterval(fetchStatus, 30000)  
+        const id = setInterval(fetchStatus, 30000)
         return () => clearInterval(id)
-       
+
     }, [])
 
     const handleRefresh = async () => {
@@ -54,9 +54,9 @@ export default function PendingApproval() {
         title: 'Account Suspended',
         description: 'Your account has been temporarily suspended.',
     } : {
-        icon: Clock, color: theme.accent, bg: `${theme.accent}10`, border: theme.border,
-        title: 'Awaiting Approval',
-        description: 'Your plan is pending Super Admin approval.',
+        icon: XCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)',
+        title: 'Access Restricted',
+        description: 'Your account access is restricted. Please contact support.',
     }
     const Icon = cfg.icon
 
@@ -64,7 +64,7 @@ export default function PendingApproval() {
         <div className="min-h-screen flex items-center justify-center p-6 relative"
             style={{ background: theme.bg, color: theme.text }}>
 
-            
+
             <div className="absolute inset-0 pointer-events-none"
                 style={{ background: `radial-gradient(ellipse 60% 50% at 50% 0%, ${cfg.color}10, transparent)` }} />
 
@@ -77,7 +77,7 @@ export default function PendingApproval() {
                 </button>
             </div>
 
-         
+
             <div className="absolute top-5 left-5 flex items-center gap-2 z-20">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg"
                     style={{ background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: '#fff' }}>
@@ -105,7 +105,7 @@ export default function PendingApproval() {
                     {cfg.description}
                 </p>
 
-                
+
                 <div className="p-4 rounded-xl mb-5 space-y-2 text-sm"
                     style={{ background: `${theme.accent}06`, border: `1px solid ${theme.border}` }}>
                     <div className="flex justify-between">
@@ -131,28 +131,6 @@ export default function PendingApproval() {
                             Rejection reason
                         </p>
                         <p style={{ color: theme.text }}>{status.rejectionReason}</p>
-                    </div>
-                )}
-
-                {!isRejected && !isSuspended && (
-                    <div className="space-y-3 mb-5">
-                        <p className="text-xs font-mono uppercase tracking-wider" style={{ color: theme.muted }}>
-                            What happens next
-                        </p>
-                        <ol className="space-y-2 text-sm" style={{ color: theme.text }}>
-                            <li className="flex gap-2">
-                                <span style={{ color: theme.accent }}>1.</span>
-                                <span>Super Admin reviews your plan request (usually within 1 business day)</span>
-                            </li>
-                            <li className="flex gap-2">
-                                <span style={{ color: theme.accent }}>2.</span>
-                                <span>You'll receive an email confirmation once approved</span>
-                            </li>
-                            <li className="flex gap-2">
-                                <span style={{ color: theme.accent }}>3.</span>
-                                <span>Full dashboard access unlocks automatically</span>
-                            </li>
-                        </ol>
                     </div>
                 )}
 

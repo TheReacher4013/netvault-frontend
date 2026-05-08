@@ -1,37 +1,45 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 
 /**
- * DOMAINVAULT COLOR SYSTEM
+ * NETVAULT COLOR SYSTEM — Aligned with DomainVault reference
  * superAdmin → Indigo  #6366F1 / #818CF8
- * admin      → Violet  #8B5CF6 / #A78BFA
+ * admin      → Violet  #7C3AED / #A78BFA  (DomainVault purple)
  * staff      → Blue    #3B82F6 / #60A5FA
  * client     → Cyan    #06B6D4 / #22D3EE
+ *
+ * DomainVault reference palette:
+ *  bg: #0B0D17 (very deep navy-black)
+ *  surface: #12141F
+ *  accent: #6C63FF (vivid indigo-purple)
+ *  accent2: #9B8AFB (soft lavender)
+ *  text: #ECEFFE
+ *  muted: #6B7280
  */
 const ROLE_ACCENTS = {
-    superAdmin: { accent: '#6366F1', accent2: '#818CF8', name: 'Super Admin' },
-    admin: { accent: '#8B5CF6', accent2: '#A78BFA', name: 'Admin' },
-    staff: { accent: '#3B82F6', accent2: '#60A5FA', name: 'Staff' },
-    client: { accent: '#06B6D4', accent2: '#22D3EE', name: 'Client' },
+    superAdmin: { accent: '#914BBF', accent2: '#5C57F2', name: 'Super Admin' },
+    admin: { accent: '#7663F2', accent2: '#D96AC6', name: 'Admin' },
+    staff: { accent: '#2ABF89', accent2: '#5C57F2', name: 'Staff' },
+    client: { accent: '#9D62D9', accent2: '#7663F2', name: 'Client' },
 }
 
 const MODE_PALETTES = {
     dark: {
-        bg: '#0A0B0F',
-        bg2: '#0F1117',
-        surface: '#161A24',
-        border: 'rgba(99,102,241,0.14)',
-        text: '#E8EDFF',
-        muted: '#6B7385',
-        overlay: 'rgba(10,11,15,0.80)',
+        bg: '#0D0A1A',
+        bg2: '#130F25',
+        surface: '#1B1530',
+        border: 'rgba(118,99,242,0.18)',
+        text: '#F0ECFF',
+        muted: '#7A708E',
+        overlay: 'rgba(13,10,26,0.84)',
     },
     light: {
-        bg: '#F4F6FF',
+        bg: '#F8F5FF',
         bg2: '#FFFFFF',
         surface: '#FFFFFF',
-        border: 'rgba(99,102,241,0.12)',
-        text: '#0D1033',
-        muted: '#6B7385',
-        overlay: 'rgba(244,246,255,0.90)',
+        border: 'rgba(118,99,242,0.15)',
+        text: '#0D0B24',
+        muted: '#6B6085',
+        overlay: 'rgba(248,245,255,0.92)',
     },
 }
 

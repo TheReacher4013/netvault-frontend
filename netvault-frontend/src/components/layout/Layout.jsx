@@ -5,7 +5,8 @@ import Topbar from './Topbar'
 import { useAuth } from '../../context/AuthContext'
 import DashboardChatbot from '../DashboardChatbot'
 import AnnouncementPopup from './AnnouncementPopup'
-import TrialBanner from './TrialBanner'
+// import TrialBanner from './TrialBanner'
+import TrialPopup from './TrialPopup'   // ← new
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -26,8 +27,10 @@ export default function Layout() {
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-60">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        {/* Trial flash banner — shows every session during trial */}
-        {!isSuperAdmin && <TrialBanner />}
+
+        {/* Trial flash banner — disabled: using TrialPopup instead */}
+        {/* {!isSuperAdmin && <TrialBanner />} */}
+
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <Outlet />
         </main>
@@ -35,6 +38,14 @@ export default function Layout() {
 
       {/* Announcement popup — shows once per session for non-superAdmin */}
       <AnnouncementPopup />
+
+      {/*
+             * TrialPopup — shows once per session while on active trial.
+             * Displays profile + subscription nudge if profile is incomplete,
+             * or subscription-only nudge if profile is already done.
+             * NOT shown when trial has expired (PlanStatusGuard handles that).
+             */}
+      {!isSuperAdmin && <TrialPopup />}
 
       {/* AI Help Chatbot */}
       {!isSuperAdmin && <DashboardChatbot />}

@@ -37,7 +37,8 @@ const COUNTRY_PLAN_MAP = {
 }
 
 export default function ProfileSettings() {
-  const { user: contextUser, theme, logout, refreshTrialInfo, refreshUser } = useAuth()
+  // ── CHANGE 1: markProfileUpdated added ──────────────────────────────
+  const { user: contextUser, theme, logout, refreshTrialInfo, markProfileUpdated, refreshUser } = useAuth()
   const qc = useQueryClient()
   const [activeTab, setActiveTab] = useState('personal')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -232,9 +233,15 @@ export default function ProfileSettings() {
     }
   }
 
+  // ── CHANGE 2: markProfileUpdated() called on company settings save ──
   const saveTenantMut = useMutation({
     mutationFn: updateMyTenant,
-    onSuccess: () => { toast.success('Company settings saved'); qc.invalidateQueries(['my-tenant']); refreshTrialInfo?.() },
+    onSuccess: () => {
+      toast.success('Company settings saved')
+      qc.invalidateQueries(['my-tenant'])
+      markProfileUpdated?.()   // instantly flips profileCompleted=true in AuthContext
+      // → TrialPopup will show only "Subscribe" card next session
+    },
     onError: (err) => toast.error(err.response?.data?.message || 'Save failed'),
   })
 

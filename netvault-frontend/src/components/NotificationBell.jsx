@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notificationAPI } from '../services/api';
-import { getNotificationRoute } from '../utils/notificationRoutes';
+import { getNotificationRoute } from '../utils/notificationRoutes.js';
 
 const TYPE_COLORS = {
   info:    { bg: '#EFF6FF', border: '#BFDBFE', dot: '#3B82F6' },

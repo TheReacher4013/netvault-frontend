@@ -91,14 +91,13 @@ export default function PendingApprovals() {
         all: allTenants.length,
         trial: allTenants.filter(t => t.planStatus === 'trial').length,
         trial_expired: allTenants.filter(t => t.planStatus === 'trial_expired').length,
-        pending: allTenants.filter(t => t.planStatus === 'pending').length,
     }
 
     return (
         <div className="space-y-5">
             <PageHeader
-                title="Pending Companies"
-                subtitle={count === 0 ? 'No companies pending review' : `${count} company/companies — trial, expired, or pending approval`}
+                title="Company Subscriptions"
+                subtitle={count === 0 ? 'No companies to review' : `${count} company/companies — on trial or trial expired`}
             />
 
             {/* Filter tabs */}
@@ -108,7 +107,6 @@ export default function PendingApprovals() {
                         { key: 'all', label: 'All' },
                         { key: 'trial', label: 'On Trial' },
                         { key: 'trial_expired', label: 'Trial Expired' },
-                        { key: 'pending', label: 'Pending Approval' },
                     ].map(tab => (
                         <button key={tab.key} onClick={() => setFilter(tab.key)}
                             className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"

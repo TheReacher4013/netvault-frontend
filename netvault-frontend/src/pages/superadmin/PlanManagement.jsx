@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { superAdminService } from '../../services/api'
@@ -8,17 +7,117 @@ import { Shield, Plus, Edit3, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 
+// Full country list shared across admin modals
+const ALL_PLAN_COUNTRIES = [
+  { code: 'AF', flag: '🇦🇫', name: 'Afghanistan' }, { code: 'AL', flag: '🇦🇱', name: 'Albania' },
+  { code: 'DZ', flag: '🇩🇿', name: 'Algeria' }, { code: 'AD', flag: '🇦🇩', name: 'Andorra' },
+  { code: 'AO', flag: '🇦🇴', name: 'Angola' }, { code: 'AG', flag: '🇦🇬', name: 'Antigua and Barbuda' },
+  { code: 'AR', flag: '🇦🇷', name: 'Argentina' }, { code: 'AM', flag: '🇦🇲', name: 'Armenia' },
+  { code: 'AU', flag: '🇦🇺', name: 'Australia' }, { code: 'AT', flag: '🇦🇹', name: 'Austria' },
+  { code: 'AZ', flag: '🇦🇿', name: 'Azerbaijan' }, { code: 'BS', flag: '🇧🇸', name: 'Bahamas' },
+  { code: 'BH', flag: '🇧🇭', name: 'Bahrain' }, { code: 'BD', flag: '🇧🇩', name: 'Bangladesh' },
+  { code: 'BB', flag: '🇧🇧', name: 'Barbados' }, { code: 'BY', flag: '🇧🇾', name: 'Belarus' },
+  { code: 'BE', flag: '🇧🇪', name: 'Belgium' }, { code: 'BZ', flag: '🇧🇿', name: 'Belize' },
+  { code: 'BJ', flag: '🇧🇯', name: 'Benin' }, { code: 'BT', flag: '🇧🇹', name: 'Bhutan' },
+  { code: 'BO', flag: '🇧🇴', name: 'Bolivia' }, { code: 'BA', flag: '🇧🇦', name: 'Bosnia and Herzegovina' },
+  { code: 'BW', flag: '🇧🇼', name: 'Botswana' }, { code: 'BR', flag: '🇧🇷', name: 'Brazil' },
+  { code: 'BN', flag: '🇧🇳', name: 'Brunei' }, { code: 'BG', flag: '🇧🇬', name: 'Bulgaria' },
+  { code: 'BF', flag: '🇧🇫', name: 'Burkina Faso' }, { code: 'BI', flag: '🇧🇮', name: 'Burundi' },
+  { code: 'CV', flag: '🇨🇻', name: 'Cabo Verde' }, { code: 'KH', flag: '🇰🇭', name: 'Cambodia' },
+  { code: 'CM', flag: '🇨🇲', name: 'Cameroon' }, { code: 'CA', flag: '🇨🇦', name: 'Canada' },
+  { code: 'CF', flag: '🇨🇫', name: 'Central African Republic' }, { code: 'TD', flag: '🇹🇩', name: 'Chad' },
+  { code: 'CL', flag: '🇨🇱', name: 'Chile' }, { code: 'CN', flag: '🇨🇳', name: 'China' },
+  { code: 'CO', flag: '🇨🇴', name: 'Colombia' }, { code: 'KM', flag: '🇰🇲', name: 'Comoros' },
+  { code: 'CD', flag: '🇨🇩', name: 'Congo (DRC)' }, { code: 'CG', flag: '🇨🇬', name: 'Congo (Republic)' },
+  { code: 'CR', flag: '🇨🇷', name: 'Costa Rica' }, { code: 'HR', flag: '🇭🇷', name: 'Croatia' },
+  { code: 'CU', flag: '🇨🇺', name: 'Cuba' }, { code: 'CY', flag: '🇨🇾', name: 'Cyprus' },
+  { code: 'CZ', flag: '🇨🇿', name: 'Czech Republic' }, { code: 'DK', flag: '🇩🇰', name: 'Denmark' },
+  { code: 'DJ', flag: '🇩🇯', name: 'Djibouti' }, { code: 'DM', flag: '🇩🇲', name: 'Dominica' },
+  { code: 'DO', flag: '🇩🇴', name: 'Dominican Republic' }, { code: 'EC', flag: '🇪🇨', name: 'Ecuador' },
+  { code: 'EG', flag: '🇪🇬', name: 'Egypt' }, { code: 'SV', flag: '🇸🇻', name: 'El Salvador' },
+  { code: 'GQ', flag: '🇬🇶', name: 'Equatorial Guinea' }, { code: 'ER', flag: '🇪🇷', name: 'Eritrea' },
+  { code: 'EE', flag: '🇪🇪', name: 'Estonia' }, { code: 'SZ', flag: '🇸🇿', name: 'Eswatini' },
+  { code: 'ET', flag: '🇪🇹', name: 'Ethiopia' }, { code: 'FJ', flag: '🇫🇯', name: 'Fiji' },
+  { code: 'FI', flag: '🇫🇮', name: 'Finland' }, { code: 'FR', flag: '🇫🇷', name: 'France' },
+  { code: 'GA', flag: '🇬🇦', name: 'Gabon' }, { code: 'GM', flag: '🇬🇲', name: 'Gambia' },
+  { code: 'GE', flag: '🇬🇪', name: 'Georgia' }, { code: 'DE', flag: '🇩🇪', name: 'Germany' },
+  { code: 'GH', flag: '🇬🇭', name: 'Ghana' }, { code: 'GR', flag: '🇬🇷', name: 'Greece' },
+  { code: 'GD', flag: '🇬🇩', name: 'Grenada' }, { code: 'GT', flag: '🇬🇹', name: 'Guatemala' },
+  { code: 'GN', flag: '🇬🇳', name: 'Guinea' }, { code: 'GW', flag: '🇬🇼', name: 'Guinea-Bissau' },
+  { code: 'GY', flag: '🇬🇾', name: 'Guyana' }, { code: 'HT', flag: '🇭🇹', name: 'Haiti' },
+  { code: 'HN', flag: '🇭🇳', name: 'Honduras' }, { code: 'HU', flag: '🇭🇺', name: 'Hungary' },
+  { code: 'IS', flag: '🇮🇸', name: 'Iceland' }, { code: 'IN', flag: '🇮🇳', name: 'India' },
+  { code: 'ID', flag: '🇮🇩', name: 'Indonesia' }, { code: 'IR', flag: '🇮🇷', name: 'Iran' },
+  { code: 'IQ', flag: '🇮🇶', name: 'Iraq' }, { code: 'IE', flag: '🇮🇪', name: 'Ireland' },
+  { code: 'IL', flag: '🇮🇱', name: 'Israel' }, { code: 'IT', flag: '🇮🇹', name: 'Italy' },
+  { code: 'CI', flag: '🇨🇮', name: 'Ivory Coast' }, { code: 'JM', flag: '🇯🇲', name: 'Jamaica' },
+  { code: 'JP', flag: '🇯🇵', name: 'Japan' }, { code: 'JO', flag: '🇯🇴', name: 'Jordan' },
+  { code: 'KZ', flag: '🇰🇿', name: 'Kazakhstan' }, { code: 'KE', flag: '🇰🇪', name: 'Kenya' },
+  { code: 'KI', flag: '🇰🇮', name: 'Kiribati' }, { code: 'KW', flag: '🇰🇼', name: 'Kuwait' },
+  { code: 'KG', flag: '🇰🇬', name: 'Kyrgyzstan' }, { code: 'LA', flag: '🇱🇦', name: 'Laos' },
+  { code: 'LV', flag: '🇱🇻', name: 'Latvia' }, { code: 'LB', flag: '🇱🇧', name: 'Lebanon' },
+  { code: 'LS', flag: '🇱🇸', name: 'Lesotho' }, { code: 'LR', flag: '🇱🇷', name: 'Liberia' },
+  { code: 'LY', flag: '🇱🇾', name: 'Libya' }, { code: 'LI', flag: '🇱🇮', name: 'Liechtenstein' },
+  { code: 'LT', flag: '🇱🇹', name: 'Lithuania' }, { code: 'LU', flag: '🇱🇺', name: 'Luxembourg' },
+  { code: 'MG', flag: '🇲🇬', name: 'Madagascar' }, { code: 'MW', flag: '🇲🇼', name: 'Malawi' },
+  { code: 'MY', flag: '🇲🇾', name: 'Malaysia' }, { code: 'MV', flag: '🇲🇻', name: 'Maldives' },
+  { code: 'ML', flag: '🇲🇱', name: 'Mali' }, { code: 'MT', flag: '🇲🇹', name: 'Malta' },
+  { code: 'MH', flag: '🇲🇭', name: 'Marshall Islands' }, { code: 'MR', flag: '🇲🇷', name: 'Mauritania' },
+  { code: 'MU', flag: '🇲🇺', name: 'Mauritius' }, { code: 'MX', flag: '🇲🇽', name: 'Mexico' },
+  { code: 'FM', flag: '🇫🇲', name: 'Micronesia' }, { code: 'MD', flag: '🇲🇩', name: 'Moldova' },
+  { code: 'MC', flag: '🇲🇨', name: 'Monaco' }, { code: 'MN', flag: '🇲🇳', name: 'Mongolia' },
+  { code: 'ME', flag: '🇲🇪', name: 'Montenegro' }, { code: 'MA', flag: '🇲🇦', name: 'Morocco' },
+  { code: 'MZ', flag: '🇲🇿', name: 'Mozambique' }, { code: 'MM', flag: '🇲🇲', name: 'Myanmar' },
+  { code: 'NA', flag: '🇳🇦', name: 'Namibia' }, { code: 'NR', flag: '🇳🇷', name: 'Nauru' },
+  { code: 'NP', flag: '🇳🇵', name: 'Nepal' }, { code: 'NL', flag: '🇳🇱', name: 'Netherlands' },
+  { code: 'NZ', flag: '🇳🇿', name: 'New Zealand' }, { code: 'NI', flag: '🇳🇮', name: 'Nicaragua' },
+  { code: 'NE', flag: '🇳🇪', name: 'Niger' }, { code: 'NG', flag: '🇳🇬', name: 'Nigeria' },
+  { code: 'NO', flag: '🇳🇴', name: 'Norway' }, { code: 'OM', flag: '🇴🇲', name: 'Oman' },
+  { code: 'PK', flag: '🇵🇰', name: 'Pakistan' }, { code: 'PW', flag: '🇵🇼', name: 'Palau' },
+  { code: 'PA', flag: '🇵🇦', name: 'Panama' }, { code: 'PG', flag: '🇵🇬', name: 'Papua New Guinea' },
+  { code: 'PY', flag: '🇵🇾', name: 'Paraguay' }, { code: 'PE', flag: '🇵🇪', name: 'Peru' },
+  { code: 'PH', flag: '🇵🇭', name: 'Philippines' }, { code: 'PL', flag: '🇵🇱', name: 'Poland' },
+  { code: 'PT', flag: '🇵🇹', name: 'Portugal' }, { code: 'QA', flag: '🇶🇦', name: 'Qatar' },
+  { code: 'RO', flag: '🇷🇴', name: 'Romania' }, { code: 'RU', flag: '🇷🇺', name: 'Russia' },
+  { code: 'RW', flag: '🇷🇼', name: 'Rwanda' }, { code: 'KN', flag: '🇰🇳', name: 'Saint Kitts and Nevis' },
+  { code: 'LC', flag: '🇱🇨', name: 'Saint Lucia' }, { code: 'VC', flag: '🇻🇨', name: 'Saint Vincent and Grenadines' },
+  { code: 'WS', flag: '🇼🇸', name: 'Samoa' }, { code: 'SM', flag: '🇸🇲', name: 'San Marino' },
+  { code: 'ST', flag: '🇸🇹', name: 'Sao Tome and Principe' }, { code: 'SA', flag: '🇸🇦', name: 'Saudi Arabia' },
+  { code: 'SN', flag: '🇸🇳', name: 'Senegal' }, { code: 'RS', flag: '🇷🇸', name: 'Serbia' },
+  { code: 'SC', flag: '🇸🇨', name: 'Seychelles' }, { code: 'SL', flag: '🇸🇱', name: 'Sierra Leone' },
+  { code: 'SG', flag: '🇸🇬', name: 'Singapore' }, { code: 'SK', flag: '🇸🇰', name: 'Slovakia' },
+  { code: 'SI', flag: '🇸🇮', name: 'Slovenia' }, { code: 'SB', flag: '🇸🇧', name: 'Solomon Islands' },
+  { code: 'SO', flag: '🇸🇴', name: 'Somalia' }, { code: 'ZA', flag: '🇿🇦', name: 'South Africa' },
+  { code: 'SS', flag: '🇸🇸', name: 'South Sudan' }, { code: 'ES', flag: '🇪🇸', name: 'Spain' },
+  { code: 'LK', flag: '🇱🇰', name: 'Sri Lanka' }, { code: 'SD', flag: '🇸🇩', name: 'Sudan' },
+  { code: 'SR', flag: '🇸🇷', name: 'Suriname' }, { code: 'SE', flag: '🇸🇪', name: 'Sweden' },
+  { code: 'CH', flag: '🇨🇭', name: 'Switzerland' }, { code: 'SY', flag: '🇸🇾', name: 'Syria' },
+  { code: 'TW', flag: '🇹🇼', name: 'Taiwan' }, { code: 'TJ', flag: '🇹🇯', name: 'Tajikistan' },
+  { code: 'TZ', flag: '🇹🇿', name: 'Tanzania' }, { code: 'TH', flag: '🇹🇭', name: 'Thailand' },
+  { code: 'TL', flag: '🇹🇱', name: 'Timor-Leste' }, { code: 'TG', flag: '🇹🇬', name: 'Togo' },
+  { code: 'TO', flag: '🇹🇴', name: 'Tonga' }, { code: 'TT', flag: '🇹🇹', name: 'Trinidad and Tobago' },
+  { code: 'TN', flag: '🇹🇳', name: 'Tunisia' }, { code: 'TR', flag: '🇹🇷', name: 'Turkey' },
+  { code: 'TM', flag: '🇹🇲', name: 'Turkmenistan' }, { code: 'TV', flag: '🇹🇻', name: 'Tuvalu' },
+  { code: 'UG', flag: '🇺🇬', name: 'Uganda' }, { code: 'UA', flag: '🇺🇦', name: 'Ukraine' },
+  { code: 'AE', flag: '🇦🇪', name: 'United Arab Emirates' }, { code: 'GB', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: 'US', flag: '🇺🇸', name: 'United States' }, { code: 'UY', flag: '🇺🇾', name: 'Uruguay' },
+  { code: 'UZ', flag: '🇺🇿', name: 'Uzbekistan' }, { code: 'VU', flag: '🇻🇺', name: 'Vanuatu' },
+  { code: 'VE', flag: '🇻🇪', name: 'Venezuela' }, { code: 'VN', flag: '🇻🇳', name: 'Vietnam' },
+  { code: 'YE', flag: '🇾🇪', name: 'Yemen' }, { code: 'ZM', flag: '🇿🇲', name: 'Zambia' },
+  { code: 'ZW', flag: '🇿🇼', name: 'Zimbabwe' },
+]
+
 function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, theme }) {
-  const ALL_COUNTRIES = [
-    { code: 'IN', name: '🇮🇳 India' }, { code: 'US', name: '🇺🇸 United States' },
-    { code: 'GB', name: '🇬🇧 United Kingdom' }, { code: 'AU', name: '🇦🇺 Australia' },
-    { code: 'CA', name: '🇨🇦 Canada' }, { code: 'DE', name: '🇩🇪 Germany' },
-    { code: 'FR', name: '🇫🇷 France' }, { code: 'AE', name: '🇦🇪 UAE' },
-    { code: 'SG', name: '🇸🇬 Singapore' }, { code: 'NZ', name: '🇳🇿 New Zealand' },
-    { code: 'BD', name: '🇧🇩 Bangladesh' }, { code: 'PK', name: '🇵🇰 Pakistan' },
-    { code: 'NP', name: '🇳🇵 Nepal' }, { code: 'LK', name: '🇱🇰 Sri Lanka' },
-  ]
+  const [countrySearch, setCountrySearch] = useState('')
   const selectedCountries = form.availableCountries || []
+
+  const filteredCountries = countrySearch.trim()
+    ? ALL_PLAN_COUNTRIES.filter(c =>
+      c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+      c.code.toLowerCase().includes(countrySearch.toLowerCase())
+    )
+    : ALL_PLAN_COUNTRIES
+
   const toggleCountry = (code) => {
     setForm(f => ({
       ...f,
@@ -31,11 +130,11 @@ function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, the
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Plan Key" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="pro" />
           <Input label="Display Name" value={form.displayName} onChange={e => setForm(f => ({ ...f, displayName: e.target.value }))} placeholder="Pro" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Price /Month" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: +e.target.value }))} />
           <div>
             <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Currency</label>
@@ -54,6 +153,7 @@ function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, the
           <Input label="Max Staff" type="number" value={form.maxStaff} onChange={e => setForm(f => ({ ...f, maxStaff: +e.target.value }))} />
           <Input label="Max Hosting" type="number" value={form.maxHosting} onChange={e => setForm(f => ({ ...f, maxHosting: +e.target.value }))} />
         </div>
+        {/* Note: Max fields grid stays 2-col since all 4 fields are small numbers — readable even on mobile */}
         <Input label="Trial Days" type="number" value={form.trialDays ?? 7} onChange={e => setForm(f => ({ ...f, trialDays: +e.target.value }))} />
         <div>
           <label className="text-xs font-semibold block mb-1.5" style={{ color: theme.muted }}>Features (comma separated)</label>
@@ -70,27 +170,58 @@ function PlanModal({ open, onClose, onSubmit, loading, title, form, setForm, the
           <label className="text-xs font-semibold block mb-2" style={{ color: theme.muted }}>
             Available Countries <span className="font-normal opacity-60">(leave empty = all countries)</span>
           </label>
-          <div className="flex flex-wrap gap-2">
-            {ALL_COUNTRIES.map(c => {
+          {/* Search box for countries */}
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg mb-2"
+            style={{ background: `${theme.accent}08`, border: `1px solid ${theme.border}` }}>
+            <span style={{ color: theme.muted, fontSize: 12 }}>🔍</span>
+            <input
+              type="text"
+              value={countrySearch}
+              onChange={e => setCountrySearch(e.target.value)}
+              placeholder="Search countries…"
+              className="flex-1 bg-transparent outline-none text-xs"
+              style={{ color: theme.text }}
+            />
+            {countrySearch && (
+              <button type="button" onClick={() => setCountrySearch('')}
+                className="text-xs" style={{ color: theme.muted }}>✕</button>
+            )}
+          </div>
+          {/* Scrollable country list */}
+          <div className="flex flex-wrap gap-1.5 overflow-y-auto pr-1" style={{ maxHeight: '160px' }}>
+            {filteredCountries.map(c => {
               const selected = selectedCountries.includes(c.code)
               return (
                 <button key={c.code} type="button" onClick={() => toggleCountry(c.code)}
-                  className="px-2 py-1 rounded-lg text-xs transition-all"
+                  className="px-2 py-1 rounded-lg text-xs transition-all flex items-center gap-1"
                   style={{
                     background: selected ? `${theme.accent}22` : 'transparent',
                     color: selected ? theme.accent : theme.muted,
                     border: `1px solid ${selected ? theme.accent : theme.border}`,
                   }}>
-                  {c.name}
+                  {c.flag} {c.name}
                 </button>
               )
             })}
+            {filteredCountries.length === 0 && (
+              <p className="text-xs w-full text-center py-2" style={{ color: theme.muted }}>No countries match your search</p>
+            )}
           </div>
-          {selectedCountries.length > 0 && (
-            <p className="text-[10px] mt-1.5" style={{ color: theme.muted }}>
-              Plan shown only to: {selectedCountries.join(', ')}
-            </p>
-          )}
+          <div className="flex items-center justify-between mt-1.5">
+            {selectedCountries.length > 0 ? (
+              <p className="text-[10px]" style={{ color: theme.muted }}>
+                {selectedCountries.length} country selected — shown only to these regions
+              </p>
+            ) : (
+              <p className="text-[10px]" style={{ color: theme.muted }}>Shown to all {ALL_PLAN_COUNTRIES.length} countries</p>
+            )}
+            {selectedCountries.length > 0 && (
+              <button type="button" onClick={() => setForm(f => ({ ...f, availableCountries: [] }))}
+                className="text-[10px] underline" style={{ color: theme.muted }}>
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-3 pt-2">
           <Button loading={loading} onClick={onSubmit}>Save Plan</Button>

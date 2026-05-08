@@ -214,26 +214,25 @@ export function Modal({ open, onClose, title, children, size = 'md' }) {
   if (!open) return null
   const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className={clsx('relative w-full rounded-2xl shadow-2xl', widths[size])}
-        style={{ background: theme.surface, border: `1px solid ${theme.border}` }}
+        className={clsx('relative w-full rounded-2xl shadow-2xl flex flex-col', widths[size])}
+        style={{ background: theme.surface, border: `1px solid ${theme.border}`, maxHeight: '90dvh' }}
         onClick={e => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
+          <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: `1px solid ${theme.border}` }}>
             <p className="font-display font-bold text-base" style={{ color: theme.text }}>{title}</p>
             <button onClick={onClose} className="text-lg opacity-40 hover:opacity-80 transition-opacity" style={{ color: theme.text }}>✕</button>
           </div>
         )}
-        <div className="p-5">{children}</div>
+        <div className="p-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   )
 }
 
-// ── ConfirmDialog ─────────────────────────────────────────────────────────
 export function ConfirmDialog({ open, onClose, onConfirm, title, message, loading }) {
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">

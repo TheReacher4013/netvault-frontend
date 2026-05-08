@@ -44,7 +44,6 @@ import CreateTenant from './pages/superadmin/CreateTenant'
 import PlanManagement from './pages/superadmin/PlanManagement'
 import AllDomains from './pages/superadmin/AllDomains'
 import AllClients from './pages/superadmin/AllClients'
-import PendingApprovals from './pages/superadmin/PendingApprovals'
 import CouponManagement from './pages/superadmin/CouponManagement'
 import SuperAdminReferrals from './pages/superadmin/SuperAdminReferrals'
 import SuperAdminAnnouncements from './pages/superadmin/SuperAdminAnnouncements'
@@ -175,9 +174,6 @@ export default function App() {
           <Route path="/super-admin/alerts"
             element={<RoleRoute roles={['superAdmin']}>
               <PageTransition><AlertCenter /></PageTransition></RoleRoute>} />
-          <Route path="/super-admin/pending"
-            element={<RoleRoute roles={['superAdmin']}>
-              <PageTransition><PendingApprovals /></PageTransition></RoleRoute>} />
           <Route path="/super-admin/coupons"
             element={<RoleRoute roles={['superAdmin']}>
               <PageTransition><CouponManagement /></PageTransition></RoleRoute>} />
@@ -193,7 +189,7 @@ export default function App() {
           <Route path="/super-admin/reports"
             element={<RoleRoute roles={['superAdmin']}>
               <PageTransition><SuperAdminReports /></PageTransition></RoleRoute>} />
-          
+
           <Route path="/super-admin/email-templates"
             element={<RoleRoute roles={['superAdmin']}>
               <PageTransition><EmailTemplatesPage /></PageTransition></RoleRoute>} />

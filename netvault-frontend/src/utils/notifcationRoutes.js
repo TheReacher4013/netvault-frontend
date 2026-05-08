@@ -7,8 +7,8 @@ export function getNotificationRoute(notification, userRole) {
   if (!notification) return '/dashboard';
 
   const { source, type, entityType, entityId, actionUrl } = notification;
-  const isClient      = userRole === 'client';
-  const isSuperAdmin  = userRole === 'superAdmin';
+  const isClient = userRole === 'client';
+  const isSuperAdmin = userRole === 'superAdmin';
 
 
   if (actionUrl) return actionUrl;
@@ -18,12 +18,12 @@ export function getNotificationRoute(notification, userRole) {
     return '/notifications';
   }
 
- 
+
   const id = entityId || null;
 
   switch (type) {
 
-    
+
     case 'domain_expiry':
       if (isClient) return '/client-portal/domains';
       return id ? `/domains/${id}` : '/domains';
@@ -68,7 +68,7 @@ export function getNotificationRoute(notification, userRole) {
         }
       }
       // Final fallback: go to the alerts page for the role
-      if (isClient)     return '/client-portal/alerts';
+      if (isClient) return '/client-portal/alerts';
       if (isSuperAdmin) return '/super-admin/alerts';
       return '/alerts';
   }

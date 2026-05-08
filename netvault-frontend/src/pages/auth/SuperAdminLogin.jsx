@@ -20,8 +20,6 @@ export default function SuperAdminLogin() {
 
     const roleAccent = ROLE_ACCENTS['superAdmin']
     const theme = { ...modeTheme, accent: roleAccent.accent, accent2: roleAccent.accent2 }
-    const imageOpacity = mode === 'dark' ? 0.12 : 0.25
-    const overlayAlpha = mode === 'dark' ? 'rgba(10,11,15,0.85)' : 'rgba(248,250,252,0.88)'
 
     const afterLogin = (user) => {
         if (user.role !== 'superAdmin') {
@@ -66,12 +64,10 @@ export default function SuperAdminLogin() {
     return (
         <div className="min-h-screen flex relative overflow-hidden"
             style={{ background: theme.bg }}>
-            <div className="absolute inset-0">
-                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1920&q=80"
-                    alt="bg" className="w-full h-full object-cover" style={{ opacity: imageOpacity }} />
-                <div className="absolute inset-0" style={{ background: overlayAlpha }} />
-                <div className="absolute inset-0"
-                    style={{ background: `radial-gradient(ellipse 50% 50% at 50% 50%, ${theme.accent}15, transparent)` }} />
+            <div className="absolute inset-0 pointer-events-none">
+                <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 600, height: 600, borderRadius: '50%', background: `radial-gradient(ellipse, ${theme.accent}20 0%, transparent 70%)` }} />
+                <div style={{ position: 'absolute', bottom: '-5%', left: '-10%', width: 500, height: 500, borderRadius: '50%', background: `radial-gradient(ellipse, ${theme.accent2}15 0%, transparent 70%)` }} />
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(${theme.border} 1px, transparent 1px), linear-gradient(90deg, ${theme.border} 1px, transparent 1px)`, backgroundSize: '60px 60px', opacity: 0.4 }} />
             </div>
 
             <div className="absolute top-5 right-5 z-20"><ThemeToggle /></div>
