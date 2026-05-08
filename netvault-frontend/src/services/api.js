@@ -37,6 +37,11 @@ api.interceptors.response.use(
       window.location.href = '/login'
       return Promise.reject(err)
     }
+    // 429 = rate limited — show toast but DO NOT logout
+    if (status === 429) {
+      toast.error('Too many requests. Please slow down.')
+      return Promise.reject(err)
+    }
     if (status !== 404) toast.error(msg)
     return Promise.reject(err)
   }

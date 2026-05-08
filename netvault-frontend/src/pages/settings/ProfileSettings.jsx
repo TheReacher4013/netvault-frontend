@@ -11,7 +11,7 @@ import toast from 'react-hot-toast'
 const fetchMyTenant = () => api.get('/tenant/me')
 const updateMyTenant = (data) => api.put('/tenant/me', data)
 
-// Country codes list
+// Full 196 country codes list
 const COUNTRY_CODES = [
   { code: 'IN', dial: '+91', flag: '🇮🇳', name: 'India', phoneLength: 10, phonePattern: /^\d{10}$/ },
   { code: 'US', dial: '+1', flag: '🇺🇸', name: 'United States', phoneLength: 10, phonePattern: /^\d{10}$/ },
@@ -28,12 +28,265 @@ const COUNTRY_CODES = [
   { code: 'PK', dial: '+92', flag: '🇵🇰', name: 'Pakistan', phoneLength: 10, phonePattern: /^\d{10}$/ },
   { code: 'NP', dial: '+977', flag: '🇳🇵', name: 'Nepal', phoneLength: 10, phonePattern: /^\d{10}$/ },
   { code: 'LK', dial: '+94', flag: '🇱🇰', name: 'Sri Lanka', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'AF', dial: '+93', flag: '🇦🇫', name: 'Afghanistan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'AL', dial: '+355', flag: '🇦🇱', name: 'Albania', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'DZ', dial: '+213', flag: '🇩🇿', name: 'Algeria', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'AD', dial: '+376', flag: '🇦🇩', name: 'Andorra', phoneLength: 6, phonePattern: /^\d{6}$/ },
+  { code: 'AO', dial: '+244', flag: '🇦🇴', name: 'Angola', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'AG', dial: '+1268', flag: '🇦🇬', name: 'Antigua and Barbuda', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'AR', dial: '+54', flag: '🇦🇷', name: 'Argentina', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'AM', dial: '+374', flag: '🇦🇲', name: 'Armenia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'AT', dial: '+43', flag: '🇦🇹', name: 'Austria', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'AZ', dial: '+994', flag: '🇦🇿', name: 'Azerbaijan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'BS', dial: '+1242', flag: '🇧🇸', name: 'Bahamas', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'BH', dial: '+973', flag: '🇧🇭', name: 'Bahrain', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BB', dial: '+1246', flag: '🇧🇧', name: 'Barbados', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'BY', dial: '+375', flag: '🇧🇾', name: 'Belarus', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'BE', dial: '+32', flag: '🇧🇪', name: 'Belgium', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'BZ', dial: '+501', flag: '🇧🇿', name: 'Belize', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'BJ', dial: '+229', flag: '🇧🇯', name: 'Benin', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BT', dial: '+975', flag: '🇧🇹', name: 'Bhutan', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BO', dial: '+591', flag: '🇧🇴', name: 'Bolivia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BA', dial: '+387', flag: '🇧🇦', name: 'Bosnia and Herzegovina', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BW', dial: '+267', flag: '🇧🇼', name: 'Botswana', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'BR', dial: '+55', flag: '🇧🇷', name: 'Brazil', phoneLength: 11, phonePattern: /^\d{10,11}$/ },
+  { code: 'BN', dial: '+673', flag: '🇧🇳', name: 'Brunei', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'BG', dial: '+359', flag: '🇧🇬', name: 'Bulgaria', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'BF', dial: '+226', flag: '🇧🇫', name: 'Burkina Faso', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'BI', dial: '+257', flag: '🇧🇮', name: 'Burundi', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'CV', dial: '+238', flag: '🇨🇻', name: 'Cabo Verde', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'KH', dial: '+855', flag: '🇰🇭', name: 'Cambodia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CM', dial: '+237', flag: '🇨🇲', name: 'Cameroon', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CF', dial: '+236', flag: '🇨🇫', name: 'Central African Republic', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'TD', dial: '+235', flag: '🇹🇩', name: 'Chad', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'CL', dial: '+56', flag: '🇨🇱', name: 'Chile', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CN', dial: '+86', flag: '🇨🇳', name: 'China', phoneLength: 11, phonePattern: /^\d{11}$/ },
+  { code: 'CO', dial: '+57', flag: '🇨🇴', name: 'Colombia', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'KM', dial: '+269', flag: '🇰🇲', name: 'Comoros', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'CG', dial: '+242', flag: '🇨🇬', name: 'Congo', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CR', dial: '+506', flag: '🇨🇷', name: 'Costa Rica', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'HR', dial: '+385', flag: '🇭🇷', name: 'Croatia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CU', dial: '+53', flag: '🇨🇺', name: 'Cuba', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'CY', dial: '+357', flag: '🇨🇾', name: 'Cyprus', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'CZ', dial: '+420', flag: '🇨🇿', name: 'Czech Republic', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'DK', dial: '+45', flag: '🇩🇰', name: 'Denmark', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'DJ', dial: '+253', flag: '🇩🇯', name: 'Djibouti', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'DM', dial: '+1767', flag: '🇩🇲', name: 'Dominica', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'DO', dial: '+1809', flag: '🇩🇴', name: 'Dominican Republic', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'EC', dial: '+593', flag: '🇪🇨', name: 'Ecuador', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'EG', dial: '+20', flag: '🇪🇬', name: 'Egypt', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'SV', dial: '+503', flag: '🇸🇻', name: 'El Salvador', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'GQ', dial: '+240', flag: '🇬🇶', name: 'Equatorial Guinea', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'ER', dial: '+291', flag: '🇪🇷', name: 'Eritrea', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'EE', dial: '+372', flag: '🇪🇪', name: 'Estonia', phoneLength: 8, phonePattern: /^\d{7,8}$/ },
+  { code: 'SZ', dial: '+268', flag: '🇸🇿', name: 'Eswatini', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'ET', dial: '+251', flag: '🇪🇹', name: 'Ethiopia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'FJ', dial: '+679', flag: '🇫🇯', name: 'Fiji', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'FI', dial: '+358', flag: '🇫🇮', name: 'Finland', phoneLength: 10, phonePattern: /^\d{9,10}$/ },
+  { code: 'GA', dial: '+241', flag: '🇬🇦', name: 'Gabon', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'GM', dial: '+220', flag: '🇬🇲', name: 'Gambia', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'GE', dial: '+995', flag: '🇬🇪', name: 'Georgia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'GH', dial: '+233', flag: '🇬🇭', name: 'Ghana', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'GR', dial: '+30', flag: '🇬🇷', name: 'Greece', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'GD', dial: '+1473', flag: '🇬🇩', name: 'Grenada', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'GT', dial: '+502', flag: '🇬🇹', name: 'Guatemala', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'GN', dial: '+224', flag: '🇬🇳', name: 'Guinea', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'GW', dial: '+245', flag: '🇬🇼', name: 'Guinea-Bissau', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'GY', dial: '+592', flag: '🇬🇾', name: 'Guyana', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'HT', dial: '+509', flag: '🇭🇹', name: 'Haiti', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'HN', dial: '+504', flag: '🇭🇳', name: 'Honduras', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'HU', dial: '+36', flag: '🇭🇺', name: 'Hungary', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'IS', dial: '+354', flag: '🇮🇸', name: 'Iceland', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'ID', dial: '+62', flag: '🇮🇩', name: 'Indonesia', phoneLength: 11, phonePattern: /^\d{9,12}$/ },
+  { code: 'IR', dial: '+98', flag: '🇮🇷', name: 'Iran', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'IQ', dial: '+964', flag: '🇮🇶', name: 'Iraq', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'IE', dial: '+353', flag: '🇮🇪', name: 'Ireland', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'IL', dial: '+972', flag: '🇮🇱', name: 'Israel', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'IT', dial: '+39', flag: '🇮🇹', name: 'Italy', phoneLength: 10, phonePattern: /^\d{9,10}$/ },
+  { code: 'JM', dial: '+1876', flag: '🇯🇲', name: 'Jamaica', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'JP', dial: '+81', flag: '🇯🇵', name: 'Japan', phoneLength: 10, phonePattern: /^\d{10,11}$/ },
+  { code: 'JO', dial: '+962', flag: '🇯🇴', name: 'Jordan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'KZ', dial: '+7', flag: '🇰🇿', name: 'Kazakhstan', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'KE', dial: '+254', flag: '🇰🇪', name: 'Kenya', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'KI', dial: '+686', flag: '🇰🇮', name: 'Kiribati', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'KW', dial: '+965', flag: '🇰🇼', name: 'Kuwait', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'KG', dial: '+996', flag: '🇰🇬', name: 'Kyrgyzstan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'LA', dial: '+856', flag: '🇱🇦', name: 'Laos', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'LV', dial: '+371', flag: '🇱🇻', name: 'Latvia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'LB', dial: '+961', flag: '🇱🇧', name: 'Lebanon', phoneLength: 8, phonePattern: /^\d{7,8}$/ },
+  { code: 'LS', dial: '+266', flag: '🇱🇸', name: 'Lesotho', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'LR', dial: '+231', flag: '🇱🇷', name: 'Liberia', phoneLength: 7, phonePattern: /^\d{7,8}$/ },
+  { code: 'LY', dial: '+218', flag: '🇱🇾', name: 'Libya', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'LI', dial: '+423', flag: '🇱🇮', name: 'Liechtenstein', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'LT', dial: '+370', flag: '🇱🇹', name: 'Lithuania', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'LU', dial: '+352', flag: '🇱🇺', name: 'Luxembourg', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MG', dial: '+261', flag: '🇲🇬', name: 'Madagascar', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MW', dial: '+265', flag: '🇲🇼', name: 'Malawi', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MY', dial: '+60', flag: '🇲🇾', name: 'Malaysia', phoneLength: 9, phonePattern: /^\d{9,10}$/ },
+  { code: 'MV', dial: '+960', flag: '🇲🇻', name: 'Maldives', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'ML', dial: '+223', flag: '🇲🇱', name: 'Mali', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MT', dial: '+356', flag: '🇲🇹', name: 'Malta', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MH', dial: '+692', flag: '🇲🇭', name: 'Marshall Islands', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'MR', dial: '+222', flag: '🇲🇷', name: 'Mauritania', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MU', dial: '+230', flag: '🇲🇺', name: 'Mauritius', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MX', dial: '+52', flag: '🇲🇽', name: 'Mexico', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'FM', dial: '+691', flag: '🇫🇲', name: 'Micronesia', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'MD', dial: '+373', flag: '🇲🇩', name: 'Moldova', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MC', dial: '+377', flag: '🇲🇨', name: 'Monaco', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MN', dial: '+976', flag: '🇲🇳', name: 'Mongolia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'ME', dial: '+382', flag: '🇲🇪', name: 'Montenegro', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MA', dial: '+212', flag: '🇲🇦', name: 'Morocco', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MZ', dial: '+258', flag: '🇲🇿', name: 'Mozambique', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MM', dial: '+95', flag: '🇲🇲', name: 'Myanmar', phoneLength: 9, phonePattern: /^\d{8,9}$/ },
+  { code: 'NA', dial: '+264', flag: '🇳🇦', name: 'Namibia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'NR', dial: '+674', flag: '🇳🇷', name: 'Nauru', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'NI', dial: '+505', flag: '🇳🇮', name: 'Nicaragua', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'NE', dial: '+227', flag: '🇳🇪', name: 'Niger', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'NG', dial: '+234', flag: '🇳🇬', name: 'Nigeria', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'NO', dial: '+47', flag: '🇳🇴', name: 'Norway', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'OM', dial: '+968', flag: '🇴🇲', name: 'Oman', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'PW', dial: '+680', flag: '🇵🇼', name: 'Palau', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'PA', dial: '+507', flag: '🇵🇦', name: 'Panama', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'PG', dial: '+675', flag: '🇵🇬', name: 'Papua New Guinea', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'PY', dial: '+595', flag: '🇵🇾', name: 'Paraguay', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'PE', dial: '+51', flag: '🇵🇪', name: 'Peru', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'PH', dial: '+63', flag: '🇵🇭', name: 'Philippines', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'PL', dial: '+48', flag: '🇵🇱', name: 'Poland', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'PT', dial: '+351', flag: '🇵🇹', name: 'Portugal', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'QA', dial: '+974', flag: '🇶🇦', name: 'Qatar', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'RO', dial: '+40', flag: '🇷🇴', name: 'Romania', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'RU', dial: '+7', flag: '🇷🇺', name: 'Russia', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'RW', dial: '+250', flag: '🇷🇼', name: 'Rwanda', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'KN', dial: '+1869', flag: '🇰🇳', name: 'Saint Kitts and Nevis', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'LC', dial: '+1758', flag: '🇱🇨', name: 'Saint Lucia', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'VC', dial: '+1784', flag: '🇻🇨', name: 'Saint Vincent', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'WS', dial: '+685', flag: '🇼🇸', name: 'Samoa', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'SM', dial: '+378', flag: '🇸🇲', name: 'San Marino', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'ST', dial: '+239', flag: '🇸🇹', name: 'Sao Tome and Principe', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'SA', dial: '+966', flag: '🇸🇦', name: 'Saudi Arabia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'SN', dial: '+221', flag: '🇸🇳', name: 'Senegal', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'RS', dial: '+381', flag: '🇷🇸', name: 'Serbia', phoneLength: 9, phonePattern: /^\d{8,9}$/ },
+  { code: 'SC', dial: '+248', flag: '🇸🇨', name: 'Seychelles', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'SL', dial: '+232', flag: '🇸🇱', name: 'Sierra Leone', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'SK', dial: '+421', flag: '🇸🇰', name: 'Slovakia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'SI', dial: '+386', flag: '🇸🇮', name: 'Slovenia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'SB', dial: '+677', flag: '🇸🇧', name: 'Solomon Islands', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'SO', dial: '+252', flag: '🇸🇴', name: 'Somalia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'SS', dial: '+211', flag: '🇸🇸', name: 'South Sudan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'ES', dial: '+34', flag: '🇪🇸', name: 'Spain', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'SD', dial: '+249', flag: '🇸🇩', name: 'Sudan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'SR', dial: '+597', flag: '🇸🇷', name: 'Suriname', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'SE', dial: '+46', flag: '🇸🇪', name: 'Sweden', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'CH', dial: '+41', flag: '🇨🇭', name: 'Switzerland', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'SY', dial: '+963', flag: '🇸🇾', name: 'Syria', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'TW', dial: '+886', flag: '🇹🇼', name: 'Taiwan', phoneLength: 9, phonePattern: /^\d{9,10}$/ },
+  { code: 'TJ', dial: '+992', flag: '🇹🇯', name: 'Tajikistan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'TZ', dial: '+255', flag: '🇹🇿', name: 'Tanzania', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'TH', dial: '+66', flag: '🇹🇭', name: 'Thailand', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'TL', dial: '+670', flag: '🇹🇱', name: 'Timor-Leste', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'TG', dial: '+228', flag: '🇹🇬', name: 'Togo', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'TO', dial: '+676', flag: '🇹🇴', name: 'Tonga', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'TT', dial: '+1868', flag: '🇹🇹', name: 'Trinidad and Tobago', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'TN', dial: '+216', flag: '🇹🇳', name: 'Tunisia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'TR', dial: '+90', flag: '🇹🇷', name: 'Turkey', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'TM', dial: '+993', flag: '🇹🇲', name: 'Turkmenistan', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'TV', dial: '+688', flag: '🇹🇻', name: 'Tuvalu', phoneLength: 6, phonePattern: /^\d{6}$/ },
+  { code: 'UG', dial: '+256', flag: '🇺🇬', name: 'Uganda', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'UA', dial: '+380', flag: '🇺🇦', name: 'Ukraine', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'UY', dial: '+598', flag: '🇺🇾', name: 'Uruguay', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'UZ', dial: '+998', flag: '🇺🇿', name: 'Uzbekistan', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'VU', dial: '+678', flag: '🇻🇺', name: 'Vanuatu', phoneLength: 7, phonePattern: /^\d{7}$/ },
+  { code: 'VE', dial: '+58', flag: '🇻🇪', name: 'Venezuela', phoneLength: 10, phonePattern: /^\d{10}$/ },
+  { code: 'VN', dial: '+84', flag: '🇻🇳', name: 'Vietnam', phoneLength: 10, phonePattern: /^\d{9,10}$/ },
+  { code: 'YE', dial: '+967', flag: '🇾🇪', name: 'Yemen', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'ZM', dial: '+260', flag: '🇿🇲', name: 'Zambia', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'ZW', dial: '+263', flag: '🇿🇼', name: 'Zimbabwe', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'KR', dial: '+82', flag: '🇰🇷', name: 'South Korea', phoneLength: 10, phonePattern: /^\d{9,10}$/ },
+  { code: 'KP', dial: '+850', flag: '🇰🇵', name: 'North Korea', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'MK', dial: '+389', flag: '🇲🇰', name: 'North Macedonia', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'PS', dial: '+970', flag: '🇵🇸', name: 'Palestine', phoneLength: 9, phonePattern: /^\d{9}$/ },
+  { code: 'XK', dial: '+383', flag: '🇽🇰', name: 'Kosovo', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'HK', dial: '+852', flag: '🇭🇰', name: 'Hong Kong', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'MO', dial: '+853', flag: '🇲🇴', name: 'Macau', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'GI', dial: '+350', flag: '🇬🇮', name: 'Gibraltar', phoneLength: 8, phonePattern: /^\d{8}$/ },
+  { code: 'IM', dial: '+44', flag: '🇮🇲', name: 'Isle of Man', phoneLength: 10, phonePattern: /^\d{10}$/ },
 ]
 
 // Map country code → subscription plans currency
 const COUNTRY_PLAN_MAP = {
   IN: 'INR', US: 'USD', GB: 'GBP', AU: 'AUD', CA: 'CAD',
   DE: 'EUR', FR: 'EUR', AE: 'AED', SG: 'SGD', NZ: 'NZD',
+}
+
+// Searchable Country Code Dropdown Component
+function CountryCodeDropdown({ value, onChange, theme }) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const ref = useRef(null)
+
+  const selected = COUNTRY_CODES.find(c => c.dial === value) || COUNTRY_CODES[0]
+  const filtered = search
+    ? COUNTRY_CODES.filter(c =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.dial.includes(search) ||
+      c.code.toLowerCase().includes(search.toLowerCase())
+    )
+    : COUNTRY_CODES
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative flex-shrink-0" style={{ minWidth: '110px' }}>
+      <button
+        type="button"
+        onClick={() => { setOpen(o => !o); setSearch('') }}
+        className="w-full px-2 py-2.5 rounded-xl border text-sm flex items-center gap-1 outline-none"
+        style={{ background: theme.surface, color: theme.text, borderColor: theme.border }}>
+        <span>{selected.flag}</span>
+        <span className="font-mono text-xs">{selected.dial}</span>
+        <span className="ml-auto opacity-50 text-xs">▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 rounded-xl shadow-xl overflow-hidden"
+          style={{ background: theme.surface, border: `1px solid ${theme.border}`, width: '220px', maxHeight: '260px' }}>
+          <div className="p-2 sticky top-0" style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}` }}>
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search country..."
+              className="w-full px-2 py-1.5 rounded-lg text-xs outline-none"
+              style={{ background: `${theme.accent}10`, color: theme.text, border: `1px solid ${theme.border}` }}
+            />
+          </div>
+          <div className="overflow-y-auto" style={{ maxHeight: '200px' }}>
+            {filtered.length === 0 && (
+              <div className="text-xs text-center py-3" style={{ color: theme.muted }}>No results</div>
+            )}
+            {filtered.map(c => (
+              <button
+                key={`${c.code}-${c.dial}`}
+                type="button"
+                onClick={() => { onChange(c.dial); setOpen(false); setSearch('') }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:opacity-80 transition-opacity"
+                style={{
+                  background: value === c.dial ? `${theme.accent}15` : 'transparent',
+                  color: theme.text,
+                }}>
+                <span>{c.flag}</span>
+                <span className="flex-1 truncate">{c.name}</span>
+                <span className="font-mono opacity-60">{c.dial}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ProfileSettings() {
@@ -378,15 +631,11 @@ export default function ProfileSettings() {
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: theme.muted }}>Contact Number</label>
               <div className="flex gap-2">
-                <select
+                <CountryCodeDropdown
                   value={profile.countryCode}
-                  onChange={e => setProfile(p => ({ ...p, countryCode: e.target.value, phone: '' }))}
-                  className="px-2 py-2.5 rounded-xl border text-sm outline-none flex-shrink-0"
-                  style={{ background: theme.surface, color: theme.text, borderColor: theme.border, minWidth: '90px' }}>
-                  {COUNTRY_CODES.map(c => (
-                    <option key={`${c.code}-${c.dial}`} value={c.dial}>{c.flag} {c.dial}</option>
-                  ))}
-                </select>
+                  onChange={dial => setProfile(p => ({ ...p, countryCode: dial, phone: '' }))}
+                  theme={theme}
+                />
                 <input
                   type="tel"
                   value={profile.phone}
@@ -526,15 +775,11 @@ export default function ProfileSettings() {
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: theme.muted }}>Company Phone</label>
                 <div className="flex gap-2">
-                  <select
+                  <CountryCodeDropdown
                     value={companyForm.countryCode}
-                    onChange={e => setCompanyForm(f => ({ ...f, countryCode: e.target.value }))}
-                    className="px-2 py-2.5 rounded-xl border text-sm outline-none flex-shrink-0"
-                    style={{ background: theme.surface, color: theme.text, borderColor: theme.border, minWidth: '90px' }}>
-                    {COUNTRY_CODES.map(c => (
-                      <option key={`${c.code}-${c.dial}`} value={c.dial}>{c.flag} {c.dial}</option>
-                    ))}
-                  </select>
+                    onChange={dial => setCompanyForm(f => ({ ...f, countryCode: dial }))}
+                    theme={theme}
+                  />
                   <input
                     type="tel"
                     value={companyForm.phone}

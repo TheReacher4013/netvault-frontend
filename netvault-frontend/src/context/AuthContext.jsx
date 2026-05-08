@@ -98,10 +98,15 @@ export function AuthProvider({ children }) {
             fetchTrialInfo()
           }
         })
-        .catch(() => {
-          localStorage.removeItem('nv_token')
-          setToken(null)
-          setUser(null)
+        .catch((err) => {
+          // Sirf 401 (invalid/expired token) pe logout karo
+          // 429 (rate limit), 500 (server error), network error pe logout mat karo
+          if (err.response?.status === 401) {
+            localStorage.removeItem('nv_token')
+            setToken(null)
+            setUser(null)
+          }
+          // Baaki errors ignore — user logged in rahega
         })
         .finally(() => setLoading(false))
     } else {
