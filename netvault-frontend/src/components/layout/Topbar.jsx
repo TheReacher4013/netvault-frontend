@@ -79,12 +79,21 @@ export default function Topbar({ onMenuClick }) {
     setShowNotifs(false)
     const route = getNotificationRoute(notif, user?.role)
 
-    // If notification points to a specific hosting/domain, verify it still exists
-    if (notif.entityId && notif.entityType) {
-      const entityUrl =
-        notif.entityType === 'hosting' ? `/hosting/${notif.entityId}` :
-          notif.entityType === 'domain' ? `/domains/${notif.entityId}` :
-            null
+    // If notification points to a specific resource, verify it still exists before navigating.
+    // Check BOTH entityType AND type (some alerts set type but not entityType).
+    if (notif.entityId) {
+      const HOSTING_TYPES = ['server_down', 'hosting_expiry', 'ssl_expiry']
+      const DOMAIN_TYPES = ['domain_expiry']
+      const INVOICE_TYPES = ['invoice_overdue', 'payment_received']
+
+      const isHosting = notif.entityType === 'hosting' || HOSTING_TYPES.includes(notif.type)
+      const isDomain = notif.entityType === 'domain' || DOMAIN_TYPES.includes(notif.type)
+      const isInvoice = notif.entityType === 'invoice' || INVOICE_TYPES.includes(notif.type)
+
+      const entityUrl = isHosting ? `/hosting/${notif.entityId}`
+        : isDomain ? `/domains/${notif.entityId}`
+          : isInvoice ? `/billing/invoices/${notif.entityId}`
+            : null
 
       if (entityUrl) {
         try {
@@ -93,17 +102,12 @@ export default function Topbar({ onMenuClick }) {
           navigate(route)
         } catch (err) {
           if (err?.response?.status === 404) {
-            // Resource was deleted — silently remove this stale alert
+            // Resource was deleted — remove stale alert, show toast, don't navigate
             alertService.deleteAlert(notif._id).catch(() => { })
             qc.invalidateQueries(['topbar-alerts'])
-            toast.error(
-              notif.entityType === 'hosting'
-                ? 'This hosting was deleted — alert removed.'
-                : 'This domain was deleted — alert removed.',
-              { duration: 4000 }
-            )
+            const label = isHosting ? 'hosting' : isDomain ? 'domain' : 'record'
+            toast.error(`This ${label} no longer exists — alert removed.`, { duration: 4000 })
           } else {
-            // Some other error — navigate anyway
             navigate(route)
           }
         }
@@ -174,7 +178,7 @@ export default function Topbar({ onMenuClick }) {
 
           {showNotifs && (
             <div
-              className="absolute right-0 top-10 w-80 rounded-2xl shadow-2xl z-50 overflow-hidden"
+              className="absolute right-0 top-10 w-[min(320px,calc(100vw-8px))] rounded-2xl shadow-2xl z-[100] overflow-hidden"
               style={{ background: theme.surface, border: `1px solid ${theme.border}` }}
             >
               {/* Header */}

@@ -4,6 +4,7 @@ import { Globe, Server, Users, FileText, AlertTriangle, TrendingUp, Activity, Cl
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { reportService, domainService, notificationService } from '../services/api'
+import { getNotificationRoute } from '../utils/notifcationRoutes'
 import { StatCard, Card, CardHeader, StatusBadge, Loader, EmptyState } from '../components/ui/index'
 import { format, formatDistanceToNow } from 'date-fns'
 
@@ -138,13 +139,13 @@ export default function AdminDashboard() {
                 {/* Alerts */}
                 <Card>
                     <CardHeader title="🔔 Live Alerts" subtitle={`${unread} unread`}
-                        actions={<button onClick={() => navigate('/alerts')} className="text-xs font-mono hover:underline" style={{ color: theme.accent }}>All →</button>} />
+                        actions={<button onClick={() => navigate('/notifications')} className="text-xs font-mono hover:underline" style={{ color: theme.accent }}>All →</button>} />
                     <div className="divide-y" style={{ borderColor: theme.border }}>
                         {notifs.length === 0 ? (
                             <div className="py-10 text-center text-xs" style={{ color: theme.muted }}>No alerts</div>
                         ) : notifs.map(n => (
                             <div key={n._id} className="flex gap-3 px-4 py-3 hover:bg-white/[0.02] cursor-pointer transition-colors"
-                                onClick={() => navigate('/alerts')} style={{ opacity: n.read ? 0.5 : 1 }}>
+                                onClick={() => navigate(getNotificationRoute(n, user?.role))} style={{ opacity: n.read ? 0.5 : 1 }}>
                                 <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: severityColor(n.severity) }} />
                                 <div className="min-w-0 flex-1">
                                     <p className="text-xs font-semibold leading-tight truncate" style={{ color: theme.text }}>{n.title}</p>
