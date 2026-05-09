@@ -17,13 +17,13 @@ const initialForm = {
 };
 
 const inputStyle = {
-  width: '100%', padding: '10px 12px', border: '1.5px solid #E5E7EB',
+  width: '100%', padding: '10px 12px', border: '1.5px solid var(--nv-border)',
   borderRadius: '8px', fontSize: '14px', outline: 'none',
   boxSizing: 'border-box', fontFamily: 'inherit',
 };
 const labelStyle = {
   display: 'block', fontSize: '12px', fontWeight: 600,
-  color: '#374151', marginBottom: '6px',
+  color: 'var(--nv-muted)', marginBottom: '6px',
 };
 
 function TypeBadge({ type }) {
@@ -48,17 +48,17 @@ function Modal({ title, onClose, children }) {
       zIndex: 2000, padding: '16px',
     }}>
       <div style={{
-        background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '520px',
+        background: 'var(--nv-surface)', borderRadius: '16px', width: '100%', maxWidth: '520px',
         boxShadow: '0 20px 60px rgba(0,0,0,.18)',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px', borderBottom: '1px solid #F3F4F6',
+          padding: '20px 24px', borderBottom: '1px solid var(--nv-border)',
         }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111827' }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--nv-text)' }}>{title}</h3>
           <button onClick={onClose} style={{
-            background: '#F3F4F6', border: 'none', borderRadius: '8px',
+            background: 'var(--nv-bg2)', border: 'none', borderRadius: '8px',
             width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px',
           }}>×</button>
         </div>
@@ -137,7 +137,7 @@ export default function SuperAdminNotifications() {
           zIndex: 9999, padding: '16px',
         }}>
           <div style={{
-            background: '#fff', borderRadius: '20px', padding: '40px 48px',
+            background: 'var(--nv-surface)', borderRadius: '20px', padding: '40px 48px',
             textAlign: 'center', maxWidth: '420px', width: '100%',
             boxShadow: '0 24px 80px rgba(0,0,0,.2)',
             animation: 'popIn .3s ease',
@@ -148,8 +148,8 @@ export default function SuperAdminNotifications() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 20px', fontSize: '32px',
             }}>🔔</div>
-            <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#111827' }}>Sent!</h2>
-            <p style={{ margin: '0 0 28px', fontSize: '14px', color: '#6B7280', lineHeight: 1.6 }}>
+            <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: 'var(--nv-text)' }}>Sent!</h2>
+            <p style={{ margin: '0 0 28px', fontSize: '14px', color: 'var(--nv-muted)', lineHeight: 1.6 }}>
               {successMsg}
             </p>
             <button onClick={() => setSuccessMsg('')} style={{
@@ -169,10 +169,10 @@ export default function SuperAdminNotifications() {
         alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px',
       }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#111827' }}>
+          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--nv-text)' }}>
             📣 Broadcast Notifications
           </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6B7280' }}>
+          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--nv-muted)' }}>
             Send messages to specific roles or all users
           </p>
         </div>
@@ -186,8 +186,8 @@ export default function SuperAdminNotifications() {
 
       {/* Info callout */}
       <div style={{
-        background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px',
-        padding: '10px 14px', marginBottom: '20px', fontSize: '13px', color: '#15803D',
+        background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px',
+        padding: '10px 14px', marginBottom: '20px', fontSize: '13px', color: 'var(--nv-success)',
       }}>
         ✅ Notifications created here are broadcast to targeted roles. Recipients will see them in their <strong>Notifications</strong> page and bell. System alerts (domain expiry, uptime) appear separately in the <strong>Alert Center</strong>.
       </div>
@@ -205,21 +205,21 @@ export default function SuperAdminNotifications() {
             {t === '' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
-        <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#6B7280', alignSelf: 'center' }}>
+        <span style={{ marginLeft: 'auto', fontSize: '13px', color: 'var(--nv-muted)', alignSelf: 'center' }}>
           {filtered.length} notification{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       {/* List */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '60px', color: '#9CA3AF', fontSize: '14px' }}>Loading…</div>
+        <div style={{ textAlign: 'center', padding: '60px', color: 'var(--nv-muted)', fontSize: '14px' }}>Loading…</div>
       ) : filtered.length === 0 ? (
         <div style={{
-          textAlign: 'center', padding: '60px', background: '#F9FAFB',
-          borderRadius: '14px', border: '2px dashed #E5E7EB',
+          textAlign: 'center', padding: '60px', background: 'var(--nv-bg2)',
+          borderRadius: '14px', border: '2px dashed var(--nv-border)',
         }}>
           <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔕</div>
-          <p style={{ color: '#6B7280', margin: 0, fontSize: '14px' }}>No notifications yet</p>
+          <p style={{ color: 'var(--nv-muted)', margin: 0, fontSize: '14px' }}>No notifications yet</p>
           <button onClick={openCreate} style={{
             marginTop: '16px', background: '#6366F1', color: '#fff', border: 'none',
             borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 700,
@@ -229,7 +229,7 @@ export default function SuperAdminNotifications() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {filtered.map(n => (
             <div key={n._id} style={{
-              background: '#fff', border: '1px solid #E5E7EB',
+              background: 'var(--nv-surface)', border: '1px solid var(--nv-border)',
               borderRadius: '12px', padding: '16px',
               display: 'flex', gap: '14px', alignItems: 'flex-start',
             }}>
@@ -237,11 +237,11 @@ export default function SuperAdminNotifications() {
                 <TypeBadge type={n.type} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: '#111827', marginBottom: '4px' }}>
+                <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--nv-text)', marginBottom: '4px' }}>
                   {n.title}
                 </div>
-                <div style={{ fontSize: '13px', color: '#4B5563', lineHeight: 1.6 }}>{n.message}</div>
-                <div style={{ marginTop: '6px', fontSize: '11px', color: '#9CA3AF', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ fontSize: '13px', color: 'var(--nv-muted)', lineHeight: 1.6 }}>{n.message}</div>
+                <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--nv-muted)', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <span>{new Date(n.createdAt).toLocaleString()}</span>
                   {n.isGlobal && (
                     <span style={{ color: '#6366F1', fontWeight: 600 }}>🌐 Global</span>
@@ -256,11 +256,11 @@ export default function SuperAdminNotifications() {
               </div>
               <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                 <button onClick={() => openEdit(n)} style={{
-                  background: '#F3F4F6', border: 'none', borderRadius: '7px',
+                  background: 'var(--nv-bg2)', border: 'none', borderRadius: '7px',
                   padding: '6px 10px', cursor: 'pointer', fontSize: '13px',
                 }}>✏️</button>
                 <button onClick={() => handleDelete(n._id)} style={{
-                  background: '#FEF2F2', border: 'none', borderRadius: '7px',
+                  background: 'rgba(220,38,38,0.1)', border: 'none', borderRadius: '7px',
                   padding: '6px 10px', cursor: 'pointer', fontSize: '13px', color: '#EF4444',
                 }}>🗑</button>
               </div>
@@ -302,7 +302,7 @@ export default function SuperAdminNotifications() {
               <label style={labelStyle}>Target Roles</label>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '4px' }}>
                 {ROLES.map(r => (
-                  <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '13px', color: '#374151' }}>
+                  <label key={r} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '13px', color: 'var(--nv-muted)' }}>
                     <input type="checkbox" checked={form.targetRoles.includes(r)}
                       onChange={e => setForm(f => ({
                         ...f,
@@ -315,23 +315,23 @@ export default function SuperAdminNotifications() {
                 ))}
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#374151', fontWeight: 600 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--nv-muted)', fontWeight: 600 }}>
               <input type="checkbox" checked={form.isGlobal}
                 onChange={e => setForm(f => ({ ...f, isGlobal: e.target.checked }))} />
               🌐 Send to all users (Global)
             </label>
             <div>
-              <label style={labelStyle}>Action URL <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optional — where clicking navigates)</span></label>
+              <label style={labelStyle}>Action URL <span style={{ fontWeight: 400, color: 'var(--nv-muted)' }}>(optional — where clicking navigates)</span></label>
               <input style={inputStyle} value={form.actionUrl}
                 onChange={e => setForm(f => ({ ...f, actionUrl: e.target.value }))}
                 placeholder="e.g. /billing, /domains, /notifications" />
             </div>
-            <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--nv-muted)' }}>
               Leave roles empty + check Global to notify everyone.
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px' }}>
               <button onClick={() => setShowModal(false)} style={{
-                background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px',
+                background: 'var(--nv-bg2)', border: '1px solid var(--nv-border)', borderRadius: '8px',
                 padding: '10px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: 600,
               }}>Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.title || !form.message} style={{

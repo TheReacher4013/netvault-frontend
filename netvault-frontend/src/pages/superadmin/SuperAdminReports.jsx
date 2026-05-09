@@ -5,7 +5,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-dig
 const fmtMoney = (n) => '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0 });
 
 const PLAN_COLORS = {
-    free: { bg: '#F3F4F6', color: '#6B7280' },
+    free: { bg: '#F3F4F6', color: 'var(--nv-muted)' },
     starter: { bg: '#EFF6FF', color: '#3B82F6' },
     pro: { bg: '#F0FDF4', color: '#16A34A' },
     enterprise: { bg: '#FAF5FF', color: '#7C3AED' },
@@ -20,7 +20,7 @@ const STATUS_COLORS = {
 function StatCard({ icon, label, value, color, sub }) {
     return (
         <div style={{
-            background: '#fff', border: '1px solid #E5E7EB', borderRadius: '12px',
+            background: 'var(--nv-surface)', border: '1px solid var(--nv-border)', borderRadius: '12px',
             padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px',
         }}>
             <div style={{
@@ -29,8 +29,8 @@ function StatCard({ icon, label, value, color, sub }) {
                 justifyContent: 'center', fontSize: '18px',
             }}>{icon}</div>
             <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#111827', lineHeight: 1.1 }}>{value ?? '—'}</div>
-                <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '2px' }}>{label}</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--nv-text)', lineHeight: 1.1 }}>{value ?? '—'}</div>
+                <div style={{ fontSize: '11px', color: 'var(--nv-muted)', marginTop: '2px' }}>{label}</div>
                 {sub && <div style={{ fontSize: '11px', color, fontWeight: 600, marginTop: '1px' }}>{sub}</div>}
             </div>
         </div>
@@ -39,14 +39,14 @@ function StatCard({ icon, label, value, color, sub }) {
 
 /* Company card for mobile view */
 function CompanyCard({ c }) {
-    const pc = PLAN_COLORS[c.planName?.toLowerCase()] || { bg: '#F3F4F6', color: '#6B7280' };
+    const pc = PLAN_COLORS[c.planName?.toLowerCase()] || { bg: '#F3F4F6', color: 'var(--nv-muted)' };
     const sc = STATUS_COLORS[c.planStatus] || STATUS_COLORS.pending;
     return (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '14px 16px' }}>
+        <div style={{ background: 'var(--nv-surface)', border: '1px solid var(--nv-border)', borderRadius: '12px', padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
                 <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#111827', marginBottom: '2px' }}>{c.orgName}</div>
-                    <div style={{ fontSize: '11px', color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.adminEmail}</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--nv-text)', marginBottom: '2px' }}>{c.orgName}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--nv-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.adminEmail}</div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                     <span style={{ background: pc.bg, color: pc.color, borderRadius: '6px', padding: '2px 8px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>{c.planName || 'Free'}</span>
@@ -54,10 +54,10 @@ function CompanyCard({ c }) {
                 </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', fontSize: '12px' }}>
-                <div style={{ color: '#6B7280' }}>Expiry <span style={{ color: c.isExpired ? '#DC2626' : c.isExpiring ? '#D97706' : '#374151', fontWeight: 600 }}>{fmtDate(c.subscriptionEnd)}</span></div>
-                <div style={{ color: '#6B7280' }}>Revenue <span style={{ color: '#6366F1', fontWeight: 700 }}>{fmtMoney(c.revenue)}</span></div>
-                <div style={{ color: '#6B7280' }}>🌐 {c.domains} · 🖥️ {c.hosting}</div>
-                <div style={{ color: '#6B7280' }}>👥 {c.clients} clients · 👤 {c.staff} staff</div>
+                <div style={{ color: 'var(--nv-muted)' }}>Expiry <span style={{ color: c.isExpired ? '#DC2626' : c.isExpiring ? '#D97706' : '#374151', fontWeight: 600 }}>{fmtDate(c.subscriptionEnd)}</span></div>
+                <div style={{ color: 'var(--nv-muted)' }}>Revenue <span style={{ color: '#6366F1', fontWeight: 700 }}>{fmtMoney(c.revenue)}</span></div>
+                <div style={{ color: 'var(--nv-muted)' }}>🌐 {c.domains} · 🖥️ {c.hosting}</div>
+                <div style={{ color: 'var(--nv-muted)' }}>👥 {c.clients} clients · 👤 {c.staff} staff</div>
             </div>
             {(c.isExpired || (c.daysLeft != null && c.daysLeft <= 30 && !c.isExpired)) && (
                 <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700, color: c.isExpired ? '#DC2626' : '#D97706' }}>
@@ -108,14 +108,14 @@ function EmailScheduleSection() {
         finally { setTesting(false); }
     };
 
-    const inp = { padding: '9px 12px', border: '1.5px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', outline: 'none', fontFamily: 'inherit' };
+    const inp = { padding: '9px 12px', border: '1.5px solid var(--nv-border)', borderRadius: '8px', fontSize: '13px', outline: 'none', fontFamily: 'inherit', background: 'var(--nv-bg2)', color: 'var(--nv-text)' };
 
     return (
-        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: '14px', padding: 'clamp(16px, 4vw, 24px)', marginTop: '24px' }}>
+        <div style={{ background: 'var(--nv-surface)', border: '1px solid var(--nv-border)', borderRadius: '14px', padding: 'clamp(16px, 4vw, 24px)', marginTop: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#111827' }}>📧 Email Schedule</h2>
-                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6B7280' }}>
+                    <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--nv-text)' }}>📧 Email Schedule</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--nv-muted)' }}>
                         Send this report automatically every day
                         {schedule?.lastSentAt && <span> · Last sent: {fmtDate(schedule.lastSentAt)}</span>}
                     </p>
@@ -124,18 +124,18 @@ function EmailScheduleSection() {
                     <div style={{ width: '42px', height: '24px', borderRadius: '99px', background: enabled ? '#6366F1' : '#D1D5DB', position: 'relative', transition: 'background .2s' }} onClick={() => setEnabled(v => !v)}>
                         <div style={{ position: 'absolute', top: '3px', left: enabled ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', transition: 'left .2s', boxShadow: '0 1px 3px rgba(0,0,0,.2)' }} />
                     </div>
-                    <span style={{ fontSize: '13px', color: '#374151', fontWeight: 600 }}>{enabled ? 'Enabled' : 'Disabled'}</span>
+                    <span style={{ fontSize: '13px', color: 'var(--nv-muted)', fontWeight: 600 }}>{enabled ? 'Enabled' : 'Disabled'}</span>
                 </label>
             </div>
             <div style={{ marginBottom: '18px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Daily Send Time (IST)</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--nv-muted)', marginBottom: '6px' }}>Daily Send Time (IST)</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <input type="time" value={sendTime} onChange={e => setSendTime(e.target.value)} style={{ ...inp, width: '150px' }} />
-                    <span style={{ fontSize: '12px', color: '#9CA3AF' }}>Reports will be delivered at this time every day</span>
+                    <span style={{ fontSize: '12px', color: 'var(--nv-muted)' }}>Reports will be delivered at this time every day</span>
                 </div>
             </div>
             <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Recipient Emails</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'var(--nv-muted)', marginBottom: '6px' }}>Recipient Emails</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <input type="email" value={emailInput} onChange={e => { setEmailInput(e.target.value); setErr(''); }} onKeyDown={e => e.key === 'Enter' && addEmail()} placeholder="admin@example.com" style={{ ...inp, flex: 1, minWidth: 0 }} />
                     <button onClick={addEmail} style={{ background: '#6366F1', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>+ Add</button>
@@ -145,17 +145,17 @@ function EmailScheduleSection() {
             {emails.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                     {emails.map(e => (
-                        <div key={e} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#EEF2FF', border: '1px solid #C7D2FE', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#4338CA', maxWidth: '100%' }}>
+                        <div key={e} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', color: '#818CF8', maxWidth: '100%' }}>
                             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📧 {e}</span>
                             <button onClick={() => removeEmail(e)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366F1', fontSize: '14px', padding: '0', lineHeight: 1, flexShrink: 0 }}>×</button>
                         </div>
                     ))}
                 </div>
             )}
-            {msg && <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '13px', color: '#15803D' }}>{msg}</div>}
+            {msg && <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '13px', color: 'var(--nv-success)' }}>{msg}</div>}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button onClick={handleSave} disabled={saving} style={{ flex: '1 1 130px', background: saving ? '#9CA3AF' : '#6366F1', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 18px', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 700 }}>{saving ? 'Saving…' : '💾 Save Schedule'}</button>
-                <button onClick={handleTest} disabled={testing} style={{ flex: '1 1 130px', background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '10px 18px', cursor: testing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600, color: '#374151' }}>{testing ? 'Sending…' : '🧪 Send Test Now'}</button>
+                <button onClick={handleTest} disabled={testing} style={{ flex: '1 1 130px', background: 'var(--nv-bg2)', border: '1px solid var(--nv-border)', borderRadius: '8px', padding: '10px 18px', cursor: testing ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--nv-muted)' }}>{testing ? 'Sending…' : '🧪 Send Test Now'}</button>
             </div>
         </div>
     );
@@ -208,7 +208,7 @@ export default function SuperAdminReports() {
 
     const thStyle = (col) => ({
         padding: '11px 14px', textAlign: 'left', fontSize: '11px', fontWeight: 700,
-        color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.5px',
+        color: 'var(--nv-muted)', textTransform: 'uppercase', letterSpacing: '.5px',
         cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none',
         background: sortBy === col ? '#F0F0FF' : '#F9FAFB',
     });
@@ -239,10 +239,10 @@ export default function SuperAdminReports() {
             {/* Header */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: 'clamp(18px,4vw,22px)', fontWeight: 800, color: '#111827' }}>📊 Platform Reports</h1>
-                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6B7280' }}>All companies, subscriptions, and platform-level metrics</p>
+                    <h1 style={{ margin: 0, fontSize: 'clamp(18px,4vw,22px)', fontWeight: 800, color: 'var(--nv-text)' }}>📊 Platform Reports</h1>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--nv-muted)' }}>All companies, subscriptions, and platform-level metrics</p>
                 </div>
-                <button onClick={fetchData} style={{ background: '#F3F4F6', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>🔄 Refresh</button>
+                <button onClick={fetchData} style={{ background: 'var(--nv-bg2)', border: '1px solid var(--nv-border)', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--nv-muted)', whiteSpace: 'nowrap' }}>🔄 Refresh</button>
             </div>
 
             {/* Tabs */}
@@ -259,11 +259,11 @@ export default function SuperAdminReports() {
             </div>
 
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '80px', color: '#9CA3AF' }}>
+                <div style={{ textAlign: 'center', padding: '80px', color: 'var(--nv-muted)' }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>Loading report data…
                 </div>
             ) : !data ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#9CA3AF' }}>Failed to load data</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: 'var(--nv-muted)' }}>Failed to load data</div>
             ) : tab === 'overview' ? (
                 <>
                     <div className="sr-stats">
@@ -277,18 +277,18 @@ export default function SuperAdminReports() {
                     </div>
 
                     {data.companies.filter(c => c.isExpiring || c.isExpired).length > 0 && (
-                        <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '16px 18px', marginBottom: '20px' }}>
-                            <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: '#92400E' }}>⚠️ Subscriptions Expiring or Expired</h3>
+                        <div style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '12px', padding: '16px 18px', marginBottom: '20px' }}>
+                            <h3 style={{ margin: '0 0 10px', fontSize: '14px', fontWeight: 700, color: 'var(--nv-warning)' }}>⚠️ Subscriptions Expiring or Expired</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {data.companies.filter(c => c.isExpiring || c.isExpired).map(c => (
                                     <div key={c._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                                         <div>
-                                            <span style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{c.orgName}</span>
-                                            <span style={{ fontSize: '12px', color: '#6B7280', marginLeft: '8px' }}>{c.planName}</span>
+                                            <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--nv-text)' }}>{c.orgName}</span>
+                                            <span style={{ fontSize: '12px', color: 'var(--nv-muted)', marginLeft: '8px' }}>{c.planName}</span>
                                         </div>
                                         <div style={{ fontSize: '12px', fontWeight: 700, color: c.isExpired ? '#DC2626' : '#D97706' }}>
                                             {c.isExpired ? '❌ Expired' : `⚠️ ${c.daysLeft} days left`}
-                                            <span style={{ marginLeft: '8px', fontWeight: 400, color: '#6B7280' }}>{fmtDate(c.subscriptionEnd)}</span>
+                                            <span style={{ marginLeft: '8px', fontWeight: 400, color: 'var(--nv-muted)' }}>{fmtDate(c.subscriptionEnd)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -314,7 +314,7 @@ export default function SuperAdminReports() {
                             <option value="">All Plans</option>
                             {planOptions.map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
-                        <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#6B7280', whiteSpace: 'nowrap' }}>{companies.length} companies</span>
+                        <span style={{ marginLeft: 'auto', fontSize: '13px', color: 'var(--nv-muted)', whiteSpace: 'nowrap' }}>{companies.length} companies</span>
                         {/* View toggle — only on md+ */}
                         <div className="sr-view-toggle" style={{ display: window.innerWidth < 768 ? 'none' : 'flex' }}>
                             {['table', 'cards'].map(v => (
@@ -331,16 +331,16 @@ export default function SuperAdminReports() {
                     {viewMode === 'cards' ? (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                             {companies.length === 0
-                                ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px', color: '#9CA3AF' }}>No companies found</div>
+                                ? <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px', color: 'var(--nv-muted)' }}>No companies found</div>
                                 : companies.map(c => <CompanyCard key={c._id} c={c} />)
                             }
                         </div>
                     ) : (
                         /* Table view */
-                        <div style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid var(--nv-border)' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '740px' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                    <tr style={{ borderBottom: '1px solid var(--nv-border)' }}>
                                         <th style={thStyle('orgName')} onClick={() => toggleSort('orgName')}>Company {sortBy === 'orgName' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
                                         <th style={thStyle('planName')} onClick={() => toggleSort('planName')}>Plan</th>
                                         <th style={thStyle('planStatus')}>Status</th>
@@ -351,18 +351,18 @@ export default function SuperAdminReports() {
                                 </thead>
                                 <tbody>
                                     {companies.length === 0 ? (
-                                        <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#9CA3AF' }}>No companies found</td></tr>
+                                        <tr><td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--nv-muted)' }}>No companies found</td></tr>
                                     ) : companies.map((c, i) => {
-                                        const pc = PLAN_COLORS[c.planName?.toLowerCase()] || { bg: '#F3F4F6', color: '#6B7280' };
+                                        const pc = PLAN_COLORS[c.planName?.toLowerCase()] || { bg: '#F3F4F6', color: 'var(--nv-muted)' };
                                         const sc = STATUS_COLORS[c.planStatus] || STATUS_COLORS.pending;
                                         return (
                                             <tr key={c._id} style={{ borderBottom: i < companies.length - 1 ? '1px solid #F3F4F6' : 'none' }}
                                                 onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
                                                 onMouseLeave={e => e.currentTarget.style.background = ''}>
                                                 <td style={{ padding: '12px 14px' }}>
-                                                    <div style={{ fontWeight: 700, color: '#111827' }}>{c.orgName}</div>
-                                                    <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{c.adminEmail}</div>
-                                                    <div style={{ fontSize: '11px', color: '#9CA3AF' }}>Since {fmtDate(c.createdAt)}</div>
+                                                    <div style={{ fontWeight: 700, color: 'var(--nv-text)' }}>{c.orgName}</div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--nv-muted)' }}>{c.adminEmail}</div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--nv-muted)' }}>Since {fmtDate(c.createdAt)}</div>
                                                 </td>
                                                 <td style={{ padding: '12px 14px' }}>
                                                     <span style={{ background: pc.bg, color: pc.color, borderRadius: '6px', padding: '2px 8px', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>{c.planName || 'Free'}</span>
@@ -376,8 +376,8 @@ export default function SuperAdminReports() {
                                                     {c.isExpired && <div style={{ fontSize: '11px', color: '#DC2626', fontWeight: 700 }}>❌ Expired</div>}
                                                 </td>
                                                 <td style={{ padding: '12px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                                    <div style={{ fontSize: '12px', color: '#374151' }}>🌐 {c.domains} · 🖥️ {c.hosting}</div>
-                                                    <div style={{ fontSize: '12px', color: '#374151' }}>👥 {c.clients} · 👤 {c.staff}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--nv-muted)' }}>🌐 {c.domains} · 🖥️ {c.hosting}</div>
+                                                    <div style={{ fontSize: '12px', color: 'var(--nv-muted)' }}>👥 {c.clients} · 👤 {c.staff}</div>
                                                 </td>
                                                 <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#6366F1', whiteSpace: 'nowrap' }}>{fmtMoney(c.revenue)}</td>
                                             </tr>

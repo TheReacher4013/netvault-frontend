@@ -21,17 +21,17 @@ function ColorField({ label, value, onChange }) {
         <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">{label}</label>
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg border border-gray-200 flex-shrink-0 relative overflow-hidden cursor-pointer" style={{ background: value }}>
+                <div className="w-9 h-9 rounded-lg flex-shrink-0 relative overflow-hidden cursor-pointer" style={{ border: '1px solid var(--nv-border)', background: value }}>
                     <input type="color" value={value} onChange={e => onChange(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                 </div>
-                <input type="text" value={value} onChange={e => onChange(e.target.value)} className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:border-gray-400" maxLength={7} />
+                <input type="text" value={value} onChange={e => onChange(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg text-sm font-mono focus:outline-none" style={{ border: '1px solid var(--nv-border)', background: 'var(--nv-bg2)', color: 'var(--nv-text)' }} maxLength={7} />
             </div>
         </div>
     )
 }
 
 function TextField({ label, value, onChange, multiline, placeholder }) {
-    const cls = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 font-inherit"
+    const cls = "w-full px-3 py-2 rounded-lg text-sm focus:outline-none font-inherit" + ' ' + 'nv-input'
     return (
         <div className="mb-4">
             <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">{label}</label>
@@ -58,27 +58,27 @@ function EmailPreview({ form }) {
     })
 
     return (
-        <div className="bg-gray-100 rounded-xl p-4 h-full min-h-[300px]">
-            <div className="bg-white max-w-md mx-auto rounded-xl overflow-hidden shadow-sm">
+        <div className="rounded-xl p-4 h-full min-h-[300px]">
+            <div className="max-w-md mx-auto rounded-xl overflow-hidden shadow-sm" style={{ background: 'var(--nv-surface)' }}>
                 <div style={{ background: form.hdrColor, padding: '20px 24px' }}>
                     <div style={{ color: form.hdrTxtColor, fontSize: 18, fontWeight: 700 }}>{fill(form.headerTitle) || 'NetVault'}</div>
                     <div style={{ color: form.hdrTxtColor, opacity: 0.75, fontSize: 12, marginTop: 3 }}>{fill(form.headerSub)}</div>
                 </div>
-                <div style={{ padding: '20px 24px', background: '#fff' }}>
-                    {form.greeting && <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 8 }}>{fill(form.greeting)}</div>}
+                <div style={{ padding: '20px 24px', background: 'var(--nv-surface)' }}>
+                    {form.greeting && <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--nv-text)', marginBottom: 8 }}>{fill(form.greeting)}</div>}
                     {form.body && <div style={{ fontSize: 13, color: '#444', lineHeight: 1.7, marginBottom: 10 }}>{fill(form.body)}</div>}
                     {form.highlight && (
                         isOtp
                             ? <div style={{ background: '#F5F5F0', border: `2px dashed ${form.hlColor}`, borderRadius: 10, padding: '14px', textAlign: 'center', margin: '14px 0' }}>
                                 <div style={{ fontFamily: 'monospace', fontSize: 26, fontWeight: 900, letterSpacing: 10, color: form.hlColor }}>{fill(form.highlight)}</div>
                             </div>
-                            : <div style={{ background: form.hlBg, borderLeft: `4px solid ${form.hlColor}`, padding: '12px 14px', borderRadius: '0 6px 6px 0', fontSize: 13, color: '#374151', lineHeight: 1.6, margin: '12px 0' }}>{fill(form.highlight)}</div>
+                            : <div style={{ background: form.hlBg, borderLeft: `4px solid ${form.hlColor}`, padding: '12px 14px', borderRadius: '0 6px 6px 0', fontSize: 13, color: 'var(--nv-muted)', lineHeight: 1.6, margin: '12px 0' }}>{fill(form.highlight)}</div>
                     )}
                     {form.btnText && (
                         <a href="#" style={{ display: 'inline-block', background: form.btnColor, color: form.btnTxtColor, padding: '10px 22px', borderRadius: 7, textDecoration: 'none', fontWeight: 700, fontSize: 13, marginTop: 8 }}>{fill(form.btnText)}</a>
                     )}
                 </div>
-                <div style={{ padding: '12px 24px', background: form.footerBg, borderTop: '1px solid #E5E7EB', fontSize: 11, color: form.footerTxt, textAlign: 'center' }}>{fill(form.footer)}</div>
+                <div style={{ padding: '12px 24px', background: form.footerBg, borderTop: '1px solid var(--nv-border)', fontSize: 11, color: form.footerTxt, textAlign: 'center' }}>{fill(form.footer)}</div>
             </div>
             <p className="text-center text-xs text-gray-400 mt-3">Live preview with sample data</p>
         </div>
@@ -141,29 +141,36 @@ export default function EmailTemplatesPage() {
                 height: calc(100vh - 80px);
                 overflow: hidden;
                 border-radius: 12px;
-                border: 1px solid #E5E7EB;
+                border: 1px solid var(--nv-border);
                 position: relative;
               }
               /* Sidebar */
               .et-sidebar {
                 width: 240px;
                 flex-shrink: 0;
-                background: #f9fafb;
-                border-right: 1px solid #E5E7EB;
+                background: var(--nv-bg2);
+                border-right: 1px solid var(--nv-border);
                 display: flex;
                 flex-direction: column;
                 transition: transform 0.25s ease;
               }
               /* Editor */
-              .et-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+              .et-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--nv-surface); }
               /* Form panel */
-              .et-form-panel { width: 272px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid #f3f4f6; padding: 16px; }
+              .et-form-panel { width: 272px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid var(--nv-border); padding: 16px; }
               /* Tab actions */
               .et-tab-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; padding: 8px 0; }
               .et-tab-actions button { white-space: nowrap; }
               /* Overlay for mobile sidebar */
               .et-overlay { display: none; }
-
+              .nv-input { border: 1.5px solid var(--nv-border); background: var(--nv-bg2); color: var(--nv-text); }
+              .nv-btn-accent { background: var(--nv-accent); }
+              .nv-btn-accent:hover { opacity: 0.85; }
+              .nv-selected-item { background: var(--nv-bg2); border: 1px solid var(--nv-border); }
+              .nv-hover-item:hover { background: var(--nv-bg2); border-color: var(--nv-border); }
+              .et-tabbar .border-b { border-color: var(--nv-border); }
+ 
+ 
               /* ── Mobile / Tablet ── */
               @media (max-width: 768px) {
                 .et-wrap { flex-direction: column; height: auto; min-height: calc(100vh - 80px); border-radius: 0; border-left: none; border-right: none; }
@@ -178,10 +185,21 @@ export default function EmailTemplatesPage() {
                 }
                 .et-sidebar.open { transform: translateX(0); }
                 .et-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 299; }
-                .et-editor { min-height: 0; flex: 1; }
-                .et-form-panel { width: 100%; border-right: none; border-bottom: 1px solid #f3f4f6; }
-                .et-body { flex-direction: column !important; }
-                .et-tab-actions { flex-wrap: wrap; gap: 4px; }
+                .et-editor { min-height: 0; flex: 1; display: flex; flex-direction: column; }
+                .et-form-panel { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--nv-border); overflow-y: visible !important; }
+                .et-body { flex-direction: column !important; overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; flex: 1; }
+                .et-body > div:last-child { min-height: 320px; }
+                .et-tab-actions {
+                  width: 100%;
+                  margin-left: 0 !important;
+                  padding: 6px 8px 8px !important;
+                  border-top: 1px solid var(--nv-border);
+                  display: flex !important;
+                  justify-content: flex-end;
+                  gap: 6px !important;
+                }
+                .et-tab-actions button span { display: inline !important; }
+                .et-tabbar { flex-wrap: wrap; }
                 .et-mobile-header { display: flex !important; }
               }
               @media (min-width: 769px) {
@@ -197,12 +215,12 @@ export default function EmailTemplatesPage() {
                 {/* ── Sidebar ── */}
                 <div className={`et-sidebar${sidebarOpen ? ' open' : ''}`}>
                     {/* Mobile close button inside sidebar */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: '1px solid var(--nv-border)' }}>
                         <div>
-                            <h2 className="text-sm font-semibold text-gray-800">Email Templates</h2>
+                            <h2 className="text-sm font-semibold" style={{ color: 'var(--nv-text)' }}>Email Templates</h2>
                             <p className="text-xs text-gray-400 mt-0.5">{templates.length} templates</p>
                         </div>
-                        <button onClick={() => setSidebarOpen(false)} className="et-mobile-header p-1 rounded-lg hover:bg-gray-100" style={{ color: '#6B7280' }}>
+                        <button onClick={() => setSidebarOpen(false)} className="et-mobile-header p-1 rounded-lg hover:bg-[var(--nv-bg2)]" style={{ color: 'var(--nv-muted)' }}>
                             <ChevronLeft size={16} />
                         </button>
                     </div>
@@ -211,11 +229,12 @@ export default function EmailTemplatesPage() {
                             <button
                                 key={t.templateId}
                                 onClick={() => { setSelectedId(t.templateId); setActiveTab('content'); setSidebarOpen(false) }}
-                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-1 text-left transition-all border ${selectedId === t.templateId ? 'bg-white border-gray-200 shadow-sm' : 'border-transparent hover:bg-white hover:border-gray-100'}`}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg mb-1 text-left transition-all border ${selectedId === t.templateId ? 'shadow-sm' : 'border-transparent'}`}
+                                style={selectedId === t.templateId ? { background: 'var(--nv-bg2)', borderColor: 'var(--nv-border)' } : {}}
                             >
                                 <span className="text-base flex-shrink-0">{TEMPLATE_ICONS[t.templateId] || '📧'}</span>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-xs font-medium text-gray-800 truncate">{t.name}</div>
+                                    <div className="text-xs font-medium truncate" style={{ color: 'var(--nv-text)' }}>{t.name}</div>
                                     <div className="text-[10px] text-gray-400 truncate">{t.tag}</div>
                                 </div>
                                 {selectedId === t.templateId && <ChevronRight size={12} className="text-gray-400 flex-shrink-0" />}
@@ -228,17 +247,17 @@ export default function EmailTemplatesPage() {
                 <div className="et-editor">
 
                     {/* Mobile top bar with template picker */}
-                    <div className="et-mobile-header" style={{ padding: '10px 14px', borderBottom: '1px solid #E5E7EB', alignItems: 'center', gap: '10px', background: '#f9fafb' }}>
-                        <button onClick={() => setSidebarOpen(true)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600, color: '#374151' }}>
+                    <div className="et-mobile-header" style={{ padding: '10px 14px', borderBottom: '1px solid var(--nv-border)', alignItems: 'center', gap: '10px', background: 'var(--nv-bg2)' }}>
+                        <button onClick={() => setSidebarOpen(true)} style={{ background: 'var(--nv-bg2)', border: 'none', borderRadius: '8px', padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 600, color: 'var(--nv-muted)' }}>
                             <Menu size={14} /> Templates
                         </button>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--nv-text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {TEMPLATE_ICONS[selectedId] || '📧'} {selectedMeta?.name || selectedId}
                         </div>
                     </div>
 
                     {/* Tab bar */}
-                    <div className="flex items-center border-b border-gray-200 px-3 overflow-x-auto" style={{ flexShrink: 0 }}>
+                    <div className="et-tabbar flex items-center border-b px-3 overflow-x-auto" style={{ flexShrink: 0 }}>
                         {[
                             { id: 'content', icon: <Type size={13} />, label: 'Content' },
                             { id: 'design', icon: <Palette size={13} />, label: 'Design' },
@@ -247,20 +266,20 @@ export default function EmailTemplatesPage() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium border-b-2 transition-all flex-shrink-0 ${activeTab === tab.id ? 'border-gray-800 text-gray-800' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium border-b-2 transition-all flex-shrink-0 ${activeTab === tab.id ? 'border-[var(--nv-accent)] text-[var(--nv-text)]' : 'border-transparent text-[var(--nv-muted)] hover:text-[var(--nv-text)]'}`}
                             >
                                 {tab.icon} {tab.label}
                             </button>
                         ))}
                         <div className="et-tab-actions">
-                            <button onClick={() => setShowPreviewModal(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
-                                <Send size={11} /> <span className="hidden sm:inline">Send test</span>
+                            <button onClick={() => setShowPreviewModal(true)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs border rounded-lg" style={{ borderColor: 'var(--nv-border)', color: 'var(--nv-muted)', background: 'transparent' }}>
+                                <Send size={11} /> <span>Send test</span>
                             </button>
-                            <button onClick={() => resetMut.mutate()} disabled={resetMut.isPending} className="flex items-center gap-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50">
+                            <button onClick={() => resetMut.mutate()} disabled={resetMut.isPending} className="flex items-center gap-1 px-2.5 py-1.5 text-xs border rounded-lg" style={{ borderColor: 'var(--nv-border)', color: 'var(--nv-muted)', background: 'transparent' }}>
                                 {resetMut.isPending ? <Loader2 size={11} className="animate-spin" /> : <RotateCcw size={11} />}
-                                <span className="hidden sm:inline">Reset</span>
+                                <span>Reset</span>
                             </button>
-                            <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-gray-900 text-white rounded-lg hover:bg-gray-700">
+                            <button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} className="flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg text-white nv-btn-accent">
                                 {saveMut.isPending ? <Loader2 size={11} className="animate-spin" /> : saveMut.isSuccess ? <CheckCircle size={11} /> : <Save size={11} />}
                                 Save
                             </button>
@@ -318,14 +337,14 @@ export default function EmailTemplatesPage() {
             {/* Send test email modal */}
             {showPreviewModal && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-                        <h3 className="text-base font-semibold text-gray-800 mb-1">Send test email</h3>
+                    <div style={{ background: 'var(--nv-surface)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '384px', boxShadow: '0 25px 50px rgba(0,0,0,.4)' }}>
+                        <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--nv-text)', margin: '0 0 4px' }}>Send test email</h3>
                         <p className="text-xs text-gray-500 mb-4">Preview of <strong>{selectedMeta?.name}</strong> will be sent with sample data.</p>
                         <input type="email" placeholder="your@email.com" value={previewEmail} onChange={e => setPreviewEmail(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-4 focus:outline-none focus:border-gray-400" />
+                            className="w-full px-3 py-2 border rounded-lg text-sm mb-4 focus:outline-none" style={{ borderColor: 'var(--nv-border)', background: 'var(--nv-bg2)', color: 'var(--nv-text)' }} />
                         <div className="flex gap-2 justify-end">
-                            <button onClick={() => setShowPreviewModal(false)} className="px-4 py-2 text-sm border border-gray-200 rounded-lg text-gray-600">Cancel</button>
-                            <button onClick={() => previewMut.mutate()} disabled={!previewEmail || previewMut.isPending} className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg flex items-center gap-2 disabled:opacity-50">
+                            <button onClick={() => setShowPreviewModal(false)} className="px-4 py-2 text-sm border rounded-lg" style={{ borderColor: 'var(--nv-border)', color: 'var(--nv-muted)', background: 'transparent' }}>Cancel</button>
+                            <button onClick={() => previewMut.mutate()} disabled={!previewEmail || previewMut.isPending} className="px-4 py-2 text-sm rounded-lg text-white nv-btn-accent flex items-center gap-2 disabled:opacity-50">
                                 {previewMut.isPending && <Loader2 size={13} className="animate-spin" />} Send
                             </button>
                         </div>

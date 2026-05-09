@@ -26,10 +26,10 @@ const TotalDisplay = ({ label, value, accent }) => (
 )
 
 const INPUT_STYLE = {
-  background: '#ffffff',
-  border: '1px solid #d1d5db',
-  color: '#111827',
-  caretColor: '#111827',
+  background: 'var(--nv-bg2)',
+  border: '1px solid var(--nv-border)',
+  color: 'var(--nv-text)',
+  caretColor: 'var(--nv-text)',
 }
 
 const NumberInput = ({ label, placeholder, value, onChange, min, step, hint, suffix }) => (
@@ -250,7 +250,7 @@ export default function CreateInvoice() {
                 <label className="sm:hidden text-[10px] font-mono uppercase mb-1 block" style={{ color: theme.muted }}>Description *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Domain Registration — example.com"
+                  placeholder="e.g. Domain Registration"
                   value={item.description}
                   onChange={e => updateItem(i, 'description', e.target.value)}
                   className="w-full px-3 py-2 rounded-lg text-sm font-medium outline-none transition-all"
@@ -351,7 +351,7 @@ export default function CreateInvoice() {
                     onClick={() => setForm(f => ({ ...f, discountType: opt.val, discount: 0 }))}
                     className="px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
-                      background: form.discountType === opt.val ? theme.accent : '#ffffff',
+                      background: form.discountType === opt.val ? theme.accent : 'var(--nv-bg2)',
                       color: form.discountType === opt.val ? '#fff' : '#6b7280',
                     }}
                   >

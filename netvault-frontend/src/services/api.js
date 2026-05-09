@@ -100,6 +100,7 @@ export const domainService = {
   updateDNS: (id, rid, d) => api.put(`/domains/${id}/dns/${rid}`, d),
   deleteDNS: (id, rid) => api.delete(`/domains/${id}/dns/${rid}`),
   importCSV: (form) => api.post('/domains/import-csv', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  exportCSV: () => api.get('/domains/export-csv', { responseType: 'blob' }),
   checkNow: (id) => api.post(`/domains/${id}/check`),
 }
 
@@ -113,6 +114,8 @@ export const hostingService = {
   getSSLStatus: (id) => api.get(`/hosting/${id}/ssl-status`),
   getUptimeLogs: (id) => api.get(`/hosting/${id}/uptime`),
   getStats: () => api.get('/hosting/stats'),
+  exportCSV: () => api.get('/hosting/export-csv', { responseType: 'blob' }),      
+  importCSV: (form) => api.post('/hosting/import-csv', form, { headers: { 'Content-Type': 'multipart/form-data' } }),
 }
 
 export const clientService = {
